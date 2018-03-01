@@ -1,0 +1,57 @@
+// 350_000
+
+unseen examples
+real: 192.17, estimated: 192,09
+real: 176.4, estimated: 191,88
+real: 199.22, estimated: 199,66
+real: 215.79, estimated: 219,76
+real: 227.95, estimated: 192,13
+real: 211.93, estimated: 240,09
+real: 218.77, estimated: 211,00
+real: 210.08, estimated: 200,07
+real: 200.63, estimated: 217,15
+real: 191.21, estimated: 209,39
+real: 229.19, estimated: 240,62
+
+
+unseen examples
+real: 192.17, estimated: 189,91
+real: 176.4, estimated: 209,94
+real: 199.22, estimated: 211,03 
+real: 215.79, estimated: 227,90
+real: 227.95, estimated: 221,54
+real: 211.93, estimated: 252,52
+real: 218.77, estimated: 203,00
+real: 210.08, estimated: 209,92
+real: 200.63, estimated: 228,96
+real: 191.21, estimated: 193,03
+real: 229.19, estimated: 235,91
+
+// 300_000
+
+unseen examples
+real: 192.17, estimated: 190,80
+real: 176.4, estimated: 203,02
+real: 199.22, estimated: 244,09
+real: 215.79, estimated: 240,22
+real: 227.95, estimated: 229,47
+real: 211.93, estimated: 261,10
+real: 218.77, estimated: 211,09
+real: 210.08, estimated: 230,30
+real: 200.63, estimated: 226,33
+real: 191.21, estimated: 193,64
+real: 229.19, estimated: 261,71
+
+// 200_000
+unseen examples -> BEST
+real: 192.17, estimated: 197,07
+real: 176.4, estimated: 178,61
+real: 199.22, estimated: 213,97
+real: 215.79, estimated: 216,14
+real: 227.95, estimated: 234,35
+real: 211.93, estimated: 244,44
+real: 218.77, estimated: 177,12
+real: 210.08, estimated: 215,80
+real: 200.63, estimated: 216,50
+real: 191.21, estimated: 198,73
+real: 229.19, estimated: 230,08
