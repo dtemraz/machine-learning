@@ -1,4 +1,4 @@
-package supervised.learning.samples;
+package neural_net.learning.samples;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,4 +1,4 @@
-package unsupervised.clustering;
+package k_means;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.StringJoiner;
 import java.util.function.BiFunction;
+import java.util.function.BinaryOperator;
 import java.util.function.Predicate;
 
 /**
@@ -33,6 +34,7 @@ public class Cluster {
     private static final BiFunction<Double[], Double[], Double> squaredEuclidean = (a, b) -> {
         int length = a.length; // could be either a or b
         double distance = 0;
+        // this is just euclidean distance
         for (int component = 0; component < length; component++) {
             double delta = a[component] - b[component];
             distance += delta * delta;
@@ -61,13 +63,7 @@ public class Cluster {
      */
     public void add(Member member) {
         members.add(member);
-        Double[] data = member.data();
-        Double[] centroidValue = centroid.data();
-        // since we are maintaining sum, no need to iterate all previous cluster members to calculate new centroid
-        for (int component = 0; component < data.length; component++) {
-            sum[component] += data[component];
-            centroidValue[component] = sum[component] / size();
-        }
+        updateCentroid(member.data(), Double::sum);
     }
 
     /**
@@ -85,17 +81,11 @@ public class Cluster {
             if (removeCondition.test(data)) {
                 clusterIterator.remove();
                 removed.add(data);
-                // update centroid for each removed member
-                Double[] centroidValue = centroid.data();
-                for (int component = 0; component < data.length; component++) {
-                    sum[component] -= data[component];
-                    centroidValue[component] = sum[component] / size();
-                }
+                updateCentroid(data, (a, b) -> a - b); // update centroid for each removed member
             }
         }
         return removed;
     }
-
 
     /**
      * Returns squared euclidean distance of this cluster to <em>data</em>.
@@ -137,11 +127,9 @@ public class Cluster {
 
     @Override
     public String toString() {
-        StringJoiner builder = new StringJoiner(",");
-        for(Member member : members) {
-            builder.add(member.toString());
-        }
-        return builder.toString();
+        StringJoiner joiner = new StringJoiner(",");
+        members.forEach(m -> joiner.add(m.toString()));
+        return joiner.toString();
     }
 
     @Override
@@ -155,6 +143,16 @@ public class Cluster {
     @Override
     public int hashCode() {
         return centroid.hashCode();
+    }
+
+    // updates centroid with data according to operator which should be either summation or subtraction operator
+    private void updateCentroid(Double[] data, BinaryOperator<Double> operator) {
+        Double[] centroidValue = centroid.data();
+        // since we are maintaining sum, no need to iterate all previous cluster members to calculate new centroid
+        for (int component = 0; component < data.length; component++) {
+            sum[component] = operator.apply(sum[component], data[component]);
+            centroidValue[component] = sum[component] / size();
+        }
     }
 
 }

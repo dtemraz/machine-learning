@@ -1,9 +1,11 @@
 package examples.stocks;
 
-import supervised.learning.samples.LearningSample;
-import supervised.learning.algorithms.DeltaRuleGradientDescent;
-import supervised.neuron.Activation;
-import supervised.neuron.Neuron;
+import neural_net.Activation;
+import neural_net.Neuron;
+import neural_net.learning.algorithms.DeltaRuleGradientDescent;
+import neural_net.learning.samples.LearningSample;
+import optimization.GradientDescent;
+import optimization.StoppingCriteria;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -20,7 +22,7 @@ import java.util.List;
  * {@link LearningSample} samples are defined with input which is price in previous N - 1 days, and desired output; price in Nth day.
  *
  * <p>
- * Since our model is very simple, consisting of only one supervised.neuron, the quality of estimation will be rather poor. With this setup
+ * Since our model is very simple, consisting of only one non_linear.supervised.neuron, the quality of estimation will be rather poor. With this setup
  * we cannot catch dependencies between variables, this would require hidden layers.
  * Neuron will be able to represent seen samples with pretty good accuracy but estimation for unseen samples will be bad.
  * </p>
@@ -29,7 +31,7 @@ public class TestStocks {
 
     private static final double lEARNING_RATE = 5.6908e-09;
     private static final double ERROR_TOLERANCE = 0.000001;
-    private static final double MAX_EPOCH = 200_000;
+    private static final int MAX_EPOCH = 500_000;
 
     private static final int PREVIOUS = 80;
     private static final int SAMPLE_SIZE = 70;
@@ -40,7 +42,8 @@ public class TestStocks {
         double[] prices = loadPrices();
         StockHistory history = new StockHistory(prices);
 
-        Neuron neuron = new Neuron(PREVIOUS, Activation.IDENTITY::apply, new DeltaRuleGradientDescent(lEARNING_RATE, ERROR_TOLERANCE, MAX_EPOCH));
+        GradientDescent gd = new GradientDescent(lEARNING_RATE, MAX_EPOCH, StoppingCriteria.squaredErrorBellowTolerance(ERROR_TOLERANCE));
+        Neuron neuron = new Neuron(PREVIOUS, Activation.IDENTITY::apply, new DeltaRuleGradientDescent(gd));
         neuron.train(samples(history, PREVIOUS, SAMPLE_SIZE));
 
         System.out.println("seen examples");

@@ -1,4 +1,4 @@
-package unsupervised.clustering;
+package k_means;
 
 import java.util.Arrays;
 

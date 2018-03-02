@@ -1,4 +1,4 @@
-package unsupervised.clustering;
+package k_means;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -45,8 +45,8 @@ public class K_Means {
         data.forEach(this::mergeWithClosest);
         // some data samples which came early could end up in a wrong cluster since cluster centroids might have shifted
         // quite a bit after these samples were added
-        for (int i = 0; i < MAX_ITERATIONS; i++) {
-            if (verify()) { // this will fix clustering for wrongly clustered samples, if there are any
+        for (int balanceIteration = 0; balanceIteration < MAX_ITERATIONS; balanceIteration++) {
+            if (balance()) { // this will fix clustering for wrongly clustered samples, if there are any
                 break;
             }
         }
@@ -83,7 +83,7 @@ public class K_Means {
 
     // moves wrongly clustered members to correct clusters, in which case method returns true; returns false if all
     // samples were correctly clustered
-    private boolean verify() {
+    private boolean balance() {
         Map<Cluster, List<Double[]>> wronglyClassified = new HashMap<>();
         for (Cluster current : clusters) {
                 Predicate<Double[]> obsolete = data -> {
@@ -97,7 +97,7 @@ public class K_Means {
                 };
             fixClustering(current, wronglyClassified, obsolete);
         }
-        return wronglyClassified.size() == 0;
+        return wronglyClassified.size() == 0; // we didn't move any samples between clusters
     }
 
     // removes data from cluster which does not belong to it and adds the data to closer cluster

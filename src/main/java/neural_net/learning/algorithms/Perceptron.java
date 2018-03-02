@@ -1,12 +1,13 @@
-package supervised.learning.algorithms;
+package neural_net.learning.algorithms;
 
-import supervised.learning.samples.LearningSample;
+import neural_net.learning.samples.LearningSample;
+import utilities.Vector;
 
 import java.util.List;
 import java.util.function.BiFunction;
 
 /**
- * This class implements Perceptron learning rule that teaches supervised.neuron to perform binary classification.
+ * This class implements Perceptron learning rule that teaches neuron to perform binary classification.
  * The algorithm is guaranteed to converge for linearly separable problems.
  * For non-linearly separable problems, this learning procedure will never stop.
  *
@@ -37,7 +38,7 @@ import java.util.function.BiFunction;
  */
 public class Perceptron implements Supervisor {
 
-    public static final double DEFAULT_LEARNING_RATE = 0.22;
+    private static final double DEFAULT_LEARNING_RATE = 0.20;
 
     private final double learningRate;
 
@@ -48,7 +49,6 @@ public class Perceptron implements Supervisor {
     public Perceptron(double learningRate) {
         this.learningRate = learningRate;
     }
-
 
     @Override
     public void train(List<LearningSample> samples, double[] weights, BiFunction<double[], double[], Double> neuronOutput) {
@@ -73,10 +73,14 @@ public class Perceptron implements Supervisor {
     }
 
     // modifies weights according to Perceptron learning rule: Δ Wk(n) = d * η * x(n)
+    // see DeltaRuleStochasticGradientDescent for version with loop
     private void adjustWeights(LearningSample sample, double[] weights) {
-        for (int feature = 0; feature < weights.length; feature++) {
-            weights[feature] += learningRate * sample.getDesiredOutput() * sample.getInput()[feature];
-        }
+        // this is the d * η from the above equation, it is constant for all weights
+        double delta = sample.getDesiredOutput() * learningRate;
+        // each weight should be modified proportionally to input signal it receives from the sample, this is the * x(n) term
+        double[] gradient = Vector.multiply(sample.getInput(), delta);
+        // adds gradient to previous value of weights vector and that is how we get updated weight
+        Vector.mergeSum(weights, gradient);
     }
 
 }

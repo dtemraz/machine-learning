@@ -1,14 +1,16 @@
 package examples.iris;
 
-import supervised.learning.algorithms.DeltaRuleGradientDescent;
-import supervised.learning.algorithms.DeltaRuleStochasticGradientDescent;
-import supervised.learning.algorithms.Perceptron;
-import supervised.learning.samples.LearningSample;
-import supervised.learning.samples.PerceptronSample;
-import supervised.neuron.Activation;
-import supervised.neuron.Neuron;
-import unsupervised.clustering.K_Means;
-import unsupervised.clustering.Member;
+import k_means.K_Means;
+import k_means.Member;
+import neural_net.Activation;
+import neural_net.Neuron;
+import neural_net.learning.algorithms.DeltaRuleGradientDescent;
+import neural_net.learning.algorithms.DeltaRuleStochasticGradientDescent;
+import neural_net.learning.algorithms.Perceptron;
+import neural_net.learning.samples.LearningSample;
+import neural_net.learning.samples.PerceptronSample;
+import optimization.GradientDescent;
+import optimization.StoppingCriteria;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -41,7 +43,9 @@ public class TestIris {
         System.out.println();
 
         System.out.println("## running tests with delta rule gradient descent ##");
-        Neuron deltaGD = new Neuron(IrisReader.IRIS_MEASURES, Activation.SIGMOID::apply, new DeltaRuleGradientDescent(0.2, 0.000009, 100_000), _1_PER_CENT_ERROR_CLASSIFICATION);
+        GradientDescent gd = new GradientDescent(0.2, 100_000, StoppingCriteria.squaredErrorBellowTolerance(0.000009));
+
+        Neuron deltaGD = new Neuron(IrisReader.IRIS_MEASURES, Activation.SIGMOID::apply, new DeltaRuleGradientDescent(gd), _1_PER_CENT_ERROR_CLASSIFICATION);
         run(deltaGD, 0, 1);
 
         System.out.println();

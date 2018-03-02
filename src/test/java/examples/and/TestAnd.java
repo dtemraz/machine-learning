@@ -1,12 +1,14 @@
 package examples.and;
 
-import supervised.learning.samples.LearningSample;
-import supervised.learning.samples.PerceptronSample;
-import supervised.learning.algorithms.DeltaRuleGradientDescent;
-import supervised.learning.algorithms.DeltaRuleStochasticGradientDescent;
-import supervised.learning.algorithms.Perceptron;
-import supervised.neuron.Activation;
-import supervised.neuron.Neuron;
+import neural_net.learning.samples.LearningSample;
+import neural_net.learning.samples.PerceptronSample;
+import neural_net.learning.algorithms.DeltaRuleGradientDescent;
+import neural_net.learning.algorithms.DeltaRuleStochasticGradientDescent;
+import neural_net.learning.algorithms.Perceptron;
+import neural_net.Activation;
+import neural_net.Neuron;
+import optimization.GradientDescent;
+import optimization.StoppingCriteria;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -26,7 +28,8 @@ public class TestAnd {
         run(perceptron, PerceptronSample.CLASS_LOW, PerceptronSample.CLASS_HIGH);
 
         System.out.println("## running tests with delta rule gradient descent ##");
-        Neuron deltaGD = new Neuron(AND_FUNC_VARS, Activation.SIGMOID::apply, new DeltaRuleGradientDescent(0.3, 0.00009, 100_000), _1_PER_CENT_ERROR_CLASSIFICATION);
+        GradientDescent gd = new GradientDescent(0.3, 100_000, StoppingCriteria.squaredErrorBellowTolerance(0.00009));
+        Neuron deltaGD = new Neuron(AND_FUNC_VARS, Activation.SIGMOID::apply, new DeltaRuleGradientDescent(gd), _1_PER_CENT_ERROR_CLASSIFICATION);
         run(deltaGD, 0, 1);
 
         System.out.println("## running tests with delta rule stochastic gradient descent ##");

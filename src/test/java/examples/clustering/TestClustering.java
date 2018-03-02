@@ -1,6 +1,6 @@
 package examples.clustering;
 
-import unsupervised.clustering.K_Means;
+import k_means.K_Means;
 
 import java.util.ArrayList;
 import java.util.List;

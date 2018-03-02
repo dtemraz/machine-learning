@@ -1,4 +1,4 @@
-package supervised.neuron;
+package neural_net;
 
 import java.util.function.Function;
 
