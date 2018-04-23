@@ -19,6 +19,7 @@ public class SmsReader {
     // TODO refactor, method should calculate stop words from data set based on their frequency
     private static final String STOP_WORDS = "\\ba\\b|\\bthe\\b|\\bu\\b|\\bin\\b|\\bis\\b|\\bme\\b|\\bmy\\b|\\bto\\b|\\byou\\b|\\band\\b|\\bI\\b|\\bi\\b";
 
+
     public Map<SmsCategory, LinkedList<String>> categorize(File file, boolean pruneStopWords) {
         Map<SmsCategory, LinkedList<String>> smsCategorises = new HashMap<>();
         smsCategorises.put(SmsCategory.SPAM, new LinkedList<>());
@@ -43,7 +44,7 @@ public class SmsReader {
         LinkedList<String> spams = texts.get(SmsCategory.SPAM);
         LinkedList<String> prunedSpam = new LinkedList<>();
         for (String t : spams) {
-            prunedSpam.add(t.replaceAll("a", " "));
+            prunedSpam.add(t.replaceAll(STOP_WORDS, " "));
         }
         pruned.put(SmsCategory.SPAM, prunedSpam);
 

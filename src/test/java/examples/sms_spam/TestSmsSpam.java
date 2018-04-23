@@ -14,9 +14,9 @@ import java.util.stream.Collectors;
 
 /**
  * Sample results
- * overall accuracy : 0.9941591861160982
- * spams caught: 0.9849107142857146
- * hams blocked: 0.004409122322045613
+ * overall accuracy : 0.9843566726511068
+ * spams caught: 0.9278571428571426
+ * hams blocked: 0.006897028334485141
  *
  * TODO ugly refactor
  *

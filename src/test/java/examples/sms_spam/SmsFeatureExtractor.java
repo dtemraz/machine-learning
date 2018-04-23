@@ -21,7 +21,7 @@ public class SmsFeatureExtractor {
         return metaBuilder.toString() + " " + removeSpecialCharacters(text);
     }
 
-    public static Map<SmsMeta, Integer> getMetaInfo(String text) {
+    private static Map<SmsMeta, Integer> getMetaInfo(String text) {
         LinkedHashMap<SmsMeta, Integer> meta = new LinkedHashMap<>();
         int[] symbols = characterPassThrough(text);
         meta.put(SmsMeta.DOLLAR, symbols[1]);
@@ -47,7 +47,7 @@ public class SmsFeatureExtractor {
         }
         // this will consider numeric strings instead of digits, try as well
         String[] words = text.trim().split(WHITESPACES);
-        Long numericStrings = Stream.of(words).filter(SmsFeatureExtractor::isNumeric).count();
+        Long numericStrings = Stream.of(words).filter(SmsFeatureExtractor::isAlphaNumeric).count();
         return new int[]{numericStrings.intValue(), dollars, hyperLink};
     }
 
@@ -55,7 +55,7 @@ public class SmsFeatureExtractor {
         return text.trim().replaceAll("[.^,!?$]"," ");
     }
 
-    private static boolean isNumeric(String text) {
+    private static boolean isAlphaNumeric(String text) {
         for (char ch : text.toCharArray()) {
             if (ch >= '0' && ch <= '9') {
                 return true;
