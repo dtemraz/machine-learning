@@ -32,7 +32,7 @@ public class TestSmsSpam {
 
     public static void main(String[] args) {
         SmsReader reader = new SmsReader();
-        Map<SmsCategory, LinkedList<String>> smsCategories = reader.categorize(new File("C:\\Users\\dtemraz\\workspace\\MachineLearning\\src\\main\\resources\\sms_spam.txt"), true);
+        Map<SmsCategory, LinkedList<String>> smsCategories = reader.categorize(new File("src/test/resources/sms_spam.txt"), true);
         LinkedList<String> spamFeatures = smsCategories.get(SmsCategory.SPAM).stream().map(SmsFeatureExtractor::extractFeatures).collect(Collectors.toCollection(LinkedList::new));
         LinkedList<String> hamFeatures = smsCategories.get(SmsCategory.HAM).stream().map(SmsFeatureExtractor::extractFeatures).collect(Collectors.toCollection(LinkedList::new));
 
