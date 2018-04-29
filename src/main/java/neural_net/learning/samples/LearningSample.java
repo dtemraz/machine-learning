@@ -4,7 +4,6 @@ import neural_net.Neuron;
 import utilities.Vector;
 
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * This class models a single instance of learning sample used to train {@link Neuron}.
@@ -45,19 +44,6 @@ public class LearningSample {
     @Override
     public String toString() {
         return "input: " + Arrays.toString(input) + " , desired output: " + desiredOutput;
-    }
-
-
-    public static void vectorize(List<LearningSample> learningSamples) {
-        int samples = learningSamples.size();
-        int features = learningSamples.get(0).getInput().length; // all samples will have same dimensionality
-        double[][] data = new double[samples][features];
-        double[] out = new double[samples];
-
-        for (int sample = 0; sample < samples; sample++) {
-            data[sample] = learningSamples.get(sample).getInput();
-            out[sample] = learningSamples.get(sample).getDesiredOutput();
-        }
     }
 
 }

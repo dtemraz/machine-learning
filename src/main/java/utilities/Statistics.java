@@ -16,7 +16,7 @@ public class Statistics {
      * if there is a a significant difference between the expected frequencies and the observed frequencies.
      *
      * @param observations for which to calculate chi-squared value
-     * @return chi-squared value from obersvations
+     * @return chi-squared value from observations
      */
     public double chiSquare(int[][] observations) {
         return ChiSquare.calculate(observations);

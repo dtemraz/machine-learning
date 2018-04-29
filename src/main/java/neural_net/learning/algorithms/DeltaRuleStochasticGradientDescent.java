@@ -46,9 +46,9 @@ public class DeltaRuleStochasticGradientDescent implements Supervisor {
     private static final double DEFAULT_LEARNING_RATE = 0.002;
     private static final double DEFAULT_ERROR_TOLERANCE = 0.000009;
 
-    private double learningRate; // smaller value - more stable but slower convergence
-    private double errorTolerance; // max error in an epoch we tolerate
-    private int maxEpoch; // max number of epochs we allow before terminating learning
+    private final double learningRate; // smaller value - more stable but slower convergence
+    private final double errorTolerance; // max error in an epoch we tolerate
+    private final int maxEpoch; // max number of epochs we allow before terminating learning
 
     public DeltaRuleStochasticGradientDescent() {
         this(DEFAULT_LEARNING_RATE, DEFAULT_ERROR_TOLERANCE, MAX_EPOCH);

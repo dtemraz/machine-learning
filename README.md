@@ -9,6 +9,7 @@ This repository contains java implementation of following algorithms:
   - Perceptron 
   - Delta rule
   - Bootstrap Aggregation
+  - Random forest
   
 There are 4 runnable examples:
   - AND function solved with perceptron and delta rule,

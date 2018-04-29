@@ -74,7 +74,7 @@ public class MultinomialNaiveBayes {
         if (text == null || text.isEmpty()) {
             throw new IllegalArgumentException("text must not be null or empty");
         }
-        return maxLikelihoodClass(text.split(WHITESPACES));
+        return classify(text.split(WHITESPACES));
     }
 
     /**

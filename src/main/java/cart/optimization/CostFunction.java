@@ -1,4 +1,6 @@
-package cart;
+package cart.optimization;
+
+import cart.ClassificationTree;
 
 import java.util.HashMap;
 import java.util.List;
@@ -9,7 +11,7 @@ import java.util.List;
  *
  * @author dtemraz
  */
-interface CostFunction {
+public interface CostFunction {
 
     /**
      * Calculates cost function value for this <em>dataSet</em> of vectors. The method assumes that class id is the last vector

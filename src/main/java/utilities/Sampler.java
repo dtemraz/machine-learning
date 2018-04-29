@@ -1,4 +1,4 @@
-package ensemble;
+package utilities;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,16 +14,24 @@ public class Sampler {
 
     private final Random random = new Random();
 
+    public <T> List<List<T>> bootstrap(List<T> dataSet, double resampleRatio, int subsets) {
+        List<List<T>> samples = new ArrayList<>();
+        for (int subset = 0; subset < subsets; subset++) {
+            samples.add(subset(dataSet, resampleRatio));
+        }
+        return samples;
+    }
+
     /**
      * Creates a uniform and with replacement sample from a <em>dataSet</em> with size equal to <em>ratio</em> of the
      * data set size.
      *
      * @param dataSet to sample
-     * @param ratio percentage of <em>dataSet</em> size to use as a sample size
+     * @param ratio   percentage of <em>dataSet</em> size to use as a sample size
      * @return uniform with replacement sample from <em>dataSet</em> with size equal to <em>ratio</em> of data set size
      */
-    public List<double[]> subset(List<double[]> dataSet, double ratio) {
-        List<double[]> subset = new ArrayList<>();
+    public <T> List<T> subset(List<T> dataSet, double ratio) {
+        List<T> subset = new ArrayList<>();
         int subsetSize = (int) (dataSet.size() * ratio);
         for (int row = 0; row < subsetSize; row++) {
             // allow a sample to be used multiple times in a subset

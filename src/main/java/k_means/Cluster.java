@@ -17,7 +17,7 @@ import java.util.function.Predicate;
  *
  * <p>
  * The class offers method {@link #add(Member)} to add a new member to cluster, {@link #remove(Predicate)} to remove all members
- * that meet removal criteria, {@link #distanceTo(Double[])} to calculate squared euclidean distance for adata sample
+ * that meet removal criteria, {@link #distanceTo(Double[])} to calculate squared euclidean distance for a data sample
  * to cluster instance,
  * {@link #size()} which returns number of cluster members and {@link #getMembers()} which returns all cluster members.
  * </p>
@@ -26,9 +26,9 @@ import java.util.function.Predicate;
  */
 public class Cluster {
 
-    private Member centroid; // mean value of cluster
-    private Double[] sum; // by preserving sum of all cluster members we can easily compute new centroid when data is added to cluster
-    private List<Member> members; // members belonging to this cluster
+    private final Member centroid; // mean value of cluster
+    private final Double[] sum; // by preserving sum of all cluster members we can easily compute new centroid when data is added to cluster
+    private final List<Member> members; // members belonging to this cluster
 
     // using squared euclidean since root operation might end up being bottleneck
     private static final BiFunction<Double[], Double[], Double> squaredEuclidean = (a, b) -> {

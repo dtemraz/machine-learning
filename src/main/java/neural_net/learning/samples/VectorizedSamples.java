@@ -24,7 +24,6 @@ public class VectorizedSamples {
     }
 
     public static VectorizedSamples vectorize(List<LearningSample> learningSamples) {
-
         int samples = learningSamples.size();
         int features = learningSamples.get(0).getInput().length; // all samples will have same dimensionality
 

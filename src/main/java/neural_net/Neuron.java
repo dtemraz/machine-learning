@@ -28,7 +28,7 @@ public class Neuron {
     private final Supervisor supervisor; // algorithm to teach non_linear.supervised.neuron correct weights to solve a linearly separable problem
     private final Function<Double, Double> quantization; // optional function that can decorate output
     
-    private double[] weights; // adjusted in training phase, they define coefficients for functional mapping of input
+    private final double[] weights; // adjusted in training phase, they define coefficients for functional mapping of input
     
     public static final int BIAS_SIGNAL = 1; // we always use BIAS to be able to move decision boundary relative to origin
     

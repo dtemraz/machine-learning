@@ -4,11 +4,14 @@ import java.util.Random;
 
 /**
  * This class offers utility methods for vector operations and by vector it's meant array. However, it is useful to think
- * in terms of vectors when dealing with this doamin, hence vector
+ * in terms of vectors within machine learning domain.
+ * 
+ * <p>
  * The method {@link #dotProduct(double[], double[])} calculates dot product of two vectors,
  * and {@link #copyWithFirst(double[], double)} copies the content of given array into new array and injects the 0th value
  * in the new array equal to second argument.
- * 
+ * </p>
+ *
  * @author dtemraz
  */
 public class Vector {
@@ -67,8 +70,7 @@ public class Vector {
     }
 
     /**
-     * Copies the content of vector into new vector and sets the first as 0th
-     * value in the new vector.
+     * Copies the content of vector into new vector and sets the first as 0th value in the new vector.
      * 
      * @param vector to copy
      * @param first element to inject into new array at 0th position
@@ -82,10 +84,9 @@ public class Vector {
     }
     
     /**
-     * Returns array of a specified size filled with random
-     * doubles of a value between -0.5 and 0.5.
+     * Returns array of a specified size filled with random doubles of a value between -0.5 and 0.5.
      * 
-     * @param size
+     * @param size number of elements to generate
      * @return random array with values between -0.5 and 0.5
      */
     public static double[] randomArray(int size) {
