@@ -3,18 +3,18 @@ package ensemble.model;
 import java.util.List;
 
 /**
- * This interface defines parametric variant of {@link java.util.function.Supplier} for a {@link Model}. It's intended use
- * is with {@link ensemble.BootstrapAggregation} which can use this interface to instantiate given model with sample of
- * data set.
+ * This interface defines parametric variant of {@link java.util.function.Supplier} for a {@link Model}.
+ * The model should be fully initialized and trained for classification or regression given the data set
  *
  * @author dtemraz
  */
 public interface ModelSupplier {
     /**
-     * Create model instance given <em>dataSet</em>.
+     * Create and trains model instance given <em>dataSet</em> samples
      *
-     * @param dataSet for which to create model instance
-     * @return model with <em>dataSet</em> instance
+     * @param dataSet samples for which to create and train model instance
+     * @return model trained with <em>dataSet</em> samples
      */
     Model get(List<double[]> dataSet);
+
 }

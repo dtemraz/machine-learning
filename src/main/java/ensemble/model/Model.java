@@ -6,6 +6,7 @@ package ensemble.model;
  * @author dtemraz
  */
 public interface Model {
+
     /**
      * Return predicted value for the <em>data</em>. The predicted value could be result of classification or regression,
      * depending on the concrete model configuration.

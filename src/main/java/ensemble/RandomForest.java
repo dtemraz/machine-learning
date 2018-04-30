@@ -40,18 +40,18 @@ public class RandomForest {
     private final CommitteeOfExperts committeeOfExperts; // ensemble model in which individual trees vote for prediction
 
     public RandomForest(List<double[]> dataSet, double resampleRatio, int trees) {
-        this(dataSet, resampleRatio, trees, DEFAULT_CANDIDATES.apply(dataSet.get(0).length - 1));
+        this(dataSet, resampleRatio, trees, DEFAULT_CANDIDATES);
     }
 
-    public RandomForest(List<double[]> dataSet, double resampleRatio, int trees, int candidates) {
+    public RandomForest(List<double[]> dataSet, double resampleRatio, int trees, Function<Integer, Integer> candidates) {
         this.resampleRatio = resampleRatio;
         this.trees = trees;
         int features = dataSet.get(0).length - 1;
-        RandomFeaturesOptimizer optimizer = optimizer(features, candidates);
+        RandomFeaturesOptimizer optimizer = optimizer(features, candidates.apply(features));
         List<Model> ensembleModel = new ArrayList<>();
         bootstrap(dataSet).forEach(sample ->
                 ensembleModel.add(new ClassificationTree(sample, optimizer, MIN_SPLIT_NODES, DEPTH)::classify));
-        committeeOfExperts = new CommitteeOfExperts(ensembleModel);
+        committeeOfExperts = new CommitteeOfExperts(ensembleModel, false);
     }
 
     /**
