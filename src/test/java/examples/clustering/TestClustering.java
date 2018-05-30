@@ -1,6 +1,6 @@
 package examples.clustering;
 
-import k_means.K_Means;
+import algorithms.k_means.K_Means;
 
 import java.util.ArrayList;
 import java.util.List;

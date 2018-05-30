@@ -4,7 +4,7 @@ import structures.RandomizedQueue;
 import utilities.Vector;
 
 /**
- * This class implements gradient descent method for optimization of coefficients.
+ * This class implements gradient descent method for optimization of theta.
  * This is not a general purpose gradient descent because it makes some assumptions, namely:
  * <ul>
  *   <li>least squares cost function with linear activation</li>
@@ -16,7 +16,7 @@ import utilities.Vector;
  *  <p>ΔWk(n) = e(n) * η * x(n)</p>
  *
  * <p>
- * The class offers three methods to update coefficients/weights:
+ * The class offers three methods to update theta/weights:
  * <ul>
  *     <li>{@link #stochastic(double[][], double[], double[], Predictor)} which makes update after each sample</li>
  *     <li>{@link #batch(double[][], double[], double[], Predictor)} which makes update after all samples are seen</li>
@@ -35,7 +35,7 @@ public class GradientDescent {
      * Constructs instance of gradient descent with <em>learningRate</em> and specified number of <em>epochs</em>. This
      * instance will not use any stopping criteria.
      *
-     * @param learningRate by which gradient descent optimize coefficients, smaller = stable, larger = faster
+     * @param learningRate by which gradient descent optimize theta, smaller = stable, larger = faster
      * @param epochs number of epochs algorithm will run
      */
     public GradientDescent(double learningRate, int epochs) {
@@ -46,7 +46,7 @@ public class GradientDescent {
      * Constructs instance of gradient descent with <em>learningRate</em> which will run for most <em>epochs</em>. This
      * instance will stopping learning if at the end of any epoch <em>stoppingCriteria</em> is true.
      *
-     * @param learningRate by which gradient descent optimize coefficients, smaller = stable, larger = faster
+     * @param learningRate by which gradient descent optimize theta, smaller = stable, larger = faster
      * @param epochs number of epochs algorithm will run at most
      * @param stoppingCriteria to exit early at the end of any epoch
      */
@@ -57,13 +57,13 @@ public class GradientDescent {
     }
 
     /**
-     * Runs stochastic gradient descent to optimize <em>coefficients</em>. This means that coefficients will be updated
+     * Runs stochastic gradient descent to optimize <em>theta</em>. This means that theta will be updated
      * after each sample.
      *
      * @param in matrix of input samples, each row defines a single sample
      * @param out vector of values associated with samples
      * @param coefficients to optimize
-     * @param predictor function that calculates value from the sample and <em>coefficients</em>
+     * @param predictor function that calculates value from the sample and <em>theta</em>
      */
     public void stochastic(double[][] in, double[] out, double[] coefficients, Predictor predictor) {
         int samples = in.length; // number of learning samples
@@ -75,7 +75,7 @@ public class GradientDescent {
                 double[] input = in[sample];
                 double error = out[sample] - predictor.apply(input, coefficients);
                 epochError[sample] = error; // stopping criteria requires error for each sample in an epoch
-                // ΔWk(n) = e(n) * η * x(n), sum existing coefficients with this delta
+                // ΔWk(n) = e(n) * η * x(n), sum existing theta with this delta
                 Vector.mergeSum(coefficients, Vector.multiply(input, error * learningRate));
             }
             converged = stoppingCriteria.test(epochError);
@@ -84,43 +84,43 @@ public class GradientDescent {
     }
 
     /**
-     * Runs batch gradient descent to optimize <em>coefficients</em>. This means that coefficients will be updated
+     * Runs batch gradient descent to optimize <em>theta</em>. This means that theta will be updated
      * at the end of each epoch after all samples have been seen.
      *
      * @param in matrix of input samples, each row defines a single sample
      * @param out vector of values associated with samples
      * @param coefficients to optimize
-     * @param predictor function that calculates value from the sample and <em>coefficients</em>
+     * @param predictor function that calculates value from the sample and <em>theta</em>
      */
     public void batch(double[][] in, double[] out, double[] coefficients, Predictor predictor) {
         miniBatch(in, out, coefficients, in.length, predictor);
     }
 
     /**
-     * Runs mini batch gradient descent to optimize <em>coefficients</em>. This means that coefficients will be updated
+     * Runs mini batch gradient descent to optimize <em>theta</em>. This means that theta will be updated
      * in batches after each <em>batchSize</em> samples are seen.
      *
      * @param in matrix of input samples, each row defines a single sample
      * @param out vector of values associated with samples
      * @param coefficients to optimize
-     * @param predictor function that calculates value from the sample and <em>coefficients</em>
+     * @param predictor function that calculates value from the sample and <em>theta</em>
      */
     public void miniBatch(double[][] in, double[] out, double[] coefficients, int batchSize, Predictor predictor) {
         batchCoefficients(in, out, coefficients, batchSize, predictor);
     }
 
-    // performs batch optimization of coefficients, where batch size <= sample.size
+    // performs batch optimization of theta, where batch size <= sample.size
     private void batchCoefficients(double[][] input, double[] out, double[] coefficients, int batchSize, Predictor predictor) {
         batchSize = Math.min(batchSize, input.length); // we cannot have batch size greater than number of available samples
         int features = input[0].length; // all samples will have same number of features
         boolean converged = false; // this will be true if the algorithm converges early due to stopping criteria
         int epoch;  // save value so we print it when algorithm finishes
         double updateFactor = learningRate / batchSize; // we will update by weights by average of gradient
-        RandomizedQueue<Integer> dataRows = randomizeDataRows(input);  // randomized queue lets us have random samples iteration order
+        RandomizedQueue<Integer> dataRows = RandomizedQueue.intQueue(input.length); // random samples iteration order
 
         for (epoch = 0; epoch < epochs && !converged; epoch++) {
             double[] gradient = new double[features]; // change of weights is proportional to gradient
-            double[] epochError = new double[input.length]; // vector of error per sample in this epoch
+            double[]  epochError = new double[input.length]; // vector of error per sample in this epoch
             int sample = 0; // sample count in this epoch
             int batchCount = 0; // count of samples in this batch
             // iterator guarantees random order in each epoch
@@ -142,29 +142,5 @@ public class GradientDescent {
         }
         System.out.println(String.format("converged in %d epochs", epoch));
     }
-
-    /* MATLAB version of batch(not a mini batch) gradient descent
-      err = zeros(1, max_epoch);
-      while n < max_epoch
-          n = n + 1;
-          e = d - w*x;
-          w = w + ni * e * x';
-        err(n) = sum(e.*e);
-        if err(n) < errorTolerance
-            break
-        end
-      end
-     */
-
-    // each iterator over randomized queue will give any of n! possible permutations over items in this queue
-    private RandomizedQueue<Integer> randomizeDataRows(double[][] data) {
-        RandomizedQueue<Integer> dataRows = new RandomizedQueue<>();
-        // enqueue row index of each sample here, so we can iterate rows in random order
-        for (int row = 0; row < data.length; row++) {
-            dataRows.enqueue(row);
-        }
-        return dataRows;
-    }
-
 
 }

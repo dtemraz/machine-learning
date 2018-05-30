@@ -109,11 +109,35 @@ public class Vector {
         System.arraycopy(v1, 0, merged, 0, v1.length);
         System.arraycopy(v2, 0, merged, v1.length, v2.length);
         return merged;
-
     }
 
     /**
-     * Implements of Knuth's shuffle which is guaranteed to be uniform and run in linear time.
+     * Merges <em>vector</em> with <em>component</em> into a new vector containing both.
+     *
+     * @param vector to expand with <em>component</em>
+     * @param component to add onto <em>vector</em>
+     * @return new vector expanded with <em>component</em>
+     */
+    public static double[] merge(double[] vector, double component) {
+        return merge(vector, new double[]{component});
+    }
+
+    /**
+     * Returns sum of squared <em>vector</em> components.
+     *
+     * @param vector for which to calculate sum of squared components
+     * @return sum of squared <em>vector</em> components
+     */
+    public static double squaredSum(double[] vector) {
+        double squaredSum = 0;
+        for (double component : vector) {
+            squaredSum += component * component;
+        }
+        return squaredSum;
+    }
+
+    /**
+     * Implements of Knuth's shuffle which is guaranteed to be uniform, in-place and run in linear time.
      *
      * @param items to shuffle
      */

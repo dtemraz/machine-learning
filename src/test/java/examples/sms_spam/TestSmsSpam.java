@@ -1,12 +1,15 @@
 package examples.sms_spam;
 
-import bayes.MultinomialNaiveBayes;
-import bayes.TextSamples;
+import algorithms.ensemble.model.TextModel;
+import algorithms.linear_regression.OneAgainstRest;
+import optimization.text.SparseTextGradientDescent;
+import optimization.text.TextOptimizer;
+import structures.text.Vocabulary;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -18,13 +21,48 @@ import java.util.stream.Collectors;
  * spams caught: 0.9278571428571426
  * hams blocked: 0.006897028334485141
  *
+ * converged in 8000 epochs
+ overall accuracy : 0.9898264512268103
+ spams caught: 0.9508928571428571
+ hams blocked: 0.00414651002073255
  * TODO ugly refactor
+ *
+ *
+ * converged in 4000 epochs
+ epoch error: 0.0033088543932023925
+ overall accuracy : 0.9850388988629563
+ spams caught: 0.9330357142857143
+ hams blocked: 0.006910850034554251
+
+ converged in 8000 epochs
+ epoch error: 0.017816653540436343
+ overall accuracy : 0.9922202274087373
+ spams caught: 0.9508928571428571
+ hams blocked: 0.00138217000691085
+
+ converged in 12000 epochs
+ best epoch error: 1.7032234270907254
+ overall accuracy : 0.9910233393177738
+ spams caught: 0.9508928571428571
+ hams blocked: 0.0027643400138217
+
+ converged in: 24000 epochs, best error score: 0,00
+ training time: 48
+ overall accuracy : 0.9886295631358468
+ spams caught: 0.9241071428571429
+ hams blocked: 0.00138217000691085
+
+ converged in: 24000 epochs, best error score: 0,00
+ training time seconds: 50
+ overall accuracy : 0.9940155595451825
+ spams caught: 0.9598214285714286
+ hams blocked: 6.91085003455425E-4
  *
  * @author dtemraz
  */
 public class TestSmsSpam {
 
-    static int runs = 50;
+    static int runs = 1;
 
     static List<Double> overall = new ArrayList<>();
     static List<Double> spamsCaught = new ArrayList<>();
@@ -39,14 +77,28 @@ public class TestSmsSpam {
         for (int i = 0; i < runs; i++) {
 
             DataSet dataSet = stratification(new LinkedList<>(spamFeatures), new LinkedList<>(hamFeatures));
-            TextSamples spam = new TextSamples("SPAM", dataSet.trainingSpam);
-            TextSamples ham = new TextSamples("HAM", dataSet.trainingHam);
-            MultinomialNaiveBayes mnb = new MultinomialNaiveBayes(Arrays.asList(spam, ham));
+            Map<Double, List<String[]>> smsCorpus = new HashMap<>();
+            smsCorpus.put(0D,  dataSet.trainingSpam.stream().map(String::toLowerCase).map(t -> t.trim().split("\\s+")).collect(Collectors.toList()));
+            smsCorpus.put(1D,  dataSet.trainingHam.stream().map(String::toLowerCase).map(t -> t.trim().split("\\s+")).collect(Collectors.toList()));
+
+            ArrayList<String[]> combined = new ArrayList<>(smsCorpus.get(0D));
+            combined.addAll(smsCorpus.get(1D));
+            Vocabulary v = new Vocabulary(combined);
+
+            TextOptimizer optimizer = (x, w) -> new SparseTextGradientDescent(0.0003, 40_000, 200).stochastic(x, w, v);
+            TextOptimizer optimizerBatch = (x, w) -> new SparseTextGradientDescent(0.003, 26_000, 200).miniBatch(x, w, 120, v);
+
+            TextModel oneVSrest = OneAgainstRest.getTextModel(v, smsCorpus, optimizer);
+//            TextModel lgr = LogisticRegression.getTextModel(v, smsCorpus, optimizer);
+
+//            MultinomialNaiveBayes mnb = new MultinomialNaiveBayes(smsCorpus);
 
             int spamPositive = 0;
             int spamNegative = 0;
             for (String message : dataSet.validationSpam) {
-                if (mnb.classify(message).equals("SPAM")) {
+//                if (lgr.classify(message.trim().toLowerCase().split("\\s+")) == 0D) {
+
+                if (oneVSrest.classify(message.trim().toLowerCase().split("\\s+")) < 0.5) {
                     spamPositive++;
                 } else {
                     spamNegative++;
@@ -56,7 +108,8 @@ public class TestSmsSpam {
             int hamPositive = 0;
             int hamNegative = 0;
             for (String message : dataSet.validationHam) {
-                if (mnb.classify(message).equals("HAM")) {
+//                if (lgr.classify(message.trim().toLowerCase().split("\\s+")) == 1D) {
+                if (oneVSrest.classify(message.trim().toLowerCase().split("\\s+")) >= 0.5D) {
                     hamPositive++;
                 } else {
                     hamNegative++;
@@ -78,7 +131,7 @@ public class TestSmsSpam {
 
     private static DataSet stratification(LinkedList<String> spamSms, LinkedList<String> hamSms) {
         // apply knuth shuffle for uniform random distribution of samples
-        Collections.shuffle(spamSms);
+            Collections.shuffle(spamSms);
         Collections.shuffle(hamSms);
         // derive category percentage split
         double totalSamples = spamSms.size() + hamSms.size();

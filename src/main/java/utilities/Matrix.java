@@ -50,6 +50,21 @@ public class Matrix {
         return sum;
     }
 
+    /**
+     * Creates new copy of <em>data</em> where each array in <em>data</em> matrix has additional <em>value</em> in it's 0th spot.
+     *
+     * @param data to copy with <em>value</em> injected into 0th spot of each array
+     * @return copy of <em>data</em> with <em>value</em> in 0th spot of each array
+     */
+    public static double[][] copyWith(double[][] data, double value) {
+        int rows = data.length;
+        double[][] copyWithValue = new double[rows][data[0].length + 1];
+        for (int row = 0; row < data.length; row++) {
+            copyWithValue[row] = Vector.copyWithFirst(data[row], value);
+        }
+        return copyWithValue;
+    }
+
     public static int sumElements(int[][] matrix) {
         int sum = 0;
         for (int row = 0; row < matrix.length; row++) {

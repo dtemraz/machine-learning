@@ -1,12 +1,12 @@
 package examples.and;
 
-import neural_net.learning.samples.LearningSample;
-import neural_net.learning.samples.PerceptronSample;
-import neural_net.learning.algorithms.DeltaRuleGradientDescent;
-import neural_net.learning.algorithms.DeltaRuleStochasticGradientDescent;
-import neural_net.learning.algorithms.Perceptron;
-import neural_net.Activation;
-import neural_net.Neuron;
+import algorithms.neural_net.learning.samples.LearningSample;
+import algorithms.neural_net.learning.samples.PerceptronSample;
+import algorithms.neural_net.learning.algorithms.DeltaRuleGradientDescent;
+import algorithms.neural_net.learning.algorithms.DeltaRuleStochasticGradientDescent;
+import algorithms.neural_net.learning.algorithms.Perceptron;
+import algorithms.neural_net.Activation;
+import algorithms.neural_net.Neuron;
 import optimization.GradientDescent;
 import optimization.StoppingCriteria;
 

@@ -37,6 +37,19 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
     }
 
     /**
+     * Returns instance of {@link RandomizedQueue} populated with integers from 0 to <em>size</em>.
+     *
+     * @param size number of ints to store in the randomized queue instance
+     * @return instance of {@link RandomizedQueue} populated with integers from 0 to <em>size</em>
+     */
+    public static RandomizedQueue<Integer> intQueue(int size) {
+        RandomizedQueue<Integer> queue = new RandomizedQueue<>();
+        for (int i = 0; i < size; i++) {
+            queue.enqueue(i);
+        }
+        return queue;
+    }
+    /**
      * Returns true if this queue contains no elements, false otherwise.
      * 
      * @return true if this queue contains no elements, false otherwise

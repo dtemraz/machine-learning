@@ -16,7 +16,7 @@ There are 4 runnable examples:
   - AND function solved with perceptron and delta rule,
   - Binary classification of Iris data set with perceptron and delta rule, as well as clustering with K-means,
   - Linear regression for a stock price with delta rule.
-  - Sms spam detector with naive bayes
+  - Sms spam detector with naive algorithms.bayes
   
 Note that tests are somewhat ugly, but will be prettified eventually.
   
