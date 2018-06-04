@@ -1,10 +1,13 @@
-package evaluation;
+package evaluation.summary;
 
+import evaluation.StratifiedKFold;
+import evaluation.StratifiedTrainAndTest;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.TreeSet;
 
@@ -13,9 +16,9 @@ import java.util.TreeSet;
  * and {@link StratifiedKFold}.
  * The class contains following metrics:
  * <ul>
- * <li>overall accuracy which is the accuracy over all classes</li>
- * <li>class accuracy which is the accuracy per class</li>
- * <li>confusion matrix which shows how many times class was correctly classified or confused with the other class</li>
+ *  <li>overall accuracy which is the accuracy over all classes</li>
+ *  <li>class accuracy which is the accuracy per class</li>
+ *  <li>confusion matrix which shows how many times class was correctly classified or confused with the other class</li>
  * </ul>
  *
  * @author dtemraz
@@ -31,11 +34,14 @@ public class Summary {
     private final Map<Double, Double> classAccuracy;
     // how many times class was correctly classified or confused with the other class
     private final Map<Double, Map<Double, Integer>> confusionMatrix;
+    // text, expected class and predicted class in a list as a separate entries
+    private final Set<WronglyClassified> wronglyClassified; // Self-Note, refactor to generics to support non textual samples
 
-    public Summary(double overallAccuracy, Map<Double, Double> classAccuracy, Map<Double, Map<Double, Integer>> confusionMatrix) {
+    public Summary(double overallAccuracy, Map<Double, Double> classAccuracy, Map<Double, Map<Double, Integer>> confusionMatrix, Set<WronglyClassified> wronglyClassified) {
         this.overallAccuracy = overallAccuracy;
         this.classAccuracy = classAccuracy;
         this.confusionMatrix = confusionMatrix;
+        this.wronglyClassified = wronglyClassified;
     }
 
     @Override
@@ -60,5 +66,14 @@ public class Summary {
         return matrixFormatter.toString();
     }
 
-
+    /**
+     * Returns Set of wrongly classified samples as a List, where 0th element = text, 1th element = expected class and
+     * 2nd element = predicted class.
+     *
+     * @return wrongly classified samples as a List, where 0th element = text, 1th element = expected class and
+     * 2nd element = predicted class.
+     */
+    public Set<WronglyClassified> getWronglyClassified() {
+        return wronglyClassified;
+    }
 }

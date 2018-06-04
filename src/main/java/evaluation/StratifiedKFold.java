@@ -1,6 +1,8 @@
 package evaluation;
 
 import algorithms.ensemble.model.TextModelSupplier;
+import evaluation.summary.Summary;
+import evaluation.summary.SummaryAnalysis;
 import structures.RandomizedQueue;
 
 import java.util.ArrayList;
@@ -44,7 +46,7 @@ public class StratifiedKFold {
      * @param k number of folds
      * @return {@link Summary} averaged over each k-fold train/validate combination
      */
-    public static Summary  run(TextModelSupplier modelSupplier, Map<Double, List<String[]>> data, int k) {
+    public static Summary run(TextModelSupplier modelSupplier, Map<Double, List<String[]>> data, int k) {
         return run(modelSupplier, getFolds(data, k));
     }
 
@@ -76,9 +78,7 @@ public class StratifiedKFold {
         List<Summary> summaries = new ArrayList<>();
         for (int run = 0, validationFold = 0; run < folds.size(); run++, validationFold++) {
             // at each iteration, use different fold for validation
-            Map<Double, List<String[]>> trainingSet = extractTrainingSet(folds, validationFold);
             summaries.add(ModelEvaluation.execute(modelSupplier, extractTrainingSet(folds, validationFold), folds.get(validationFold)));
-            trainingSet.replaceAll((k, v) -> new ArrayList<>());
         }
         return SummaryAnalysis.average(summaries);
     }
@@ -143,8 +143,6 @@ public class StratifiedKFold {
                 folds.get(fold).get(classData.getKey()).addAll(kFolds.get(fold));
             }
         }
-        // saving memory here since these references over huge data sets inccur considerable memory cost
-        data.replaceAll((classId, samples) -> new ArrayList<>());
 
         return folds;
     }

@@ -2,6 +2,8 @@ package evaluation;
 
 import algorithms.ensemble.model.TextModel;
 import algorithms.ensemble.model.TextModelSupplier;
+import evaluation.summary.Summary;
+import evaluation.summary.SummaryAnalysis;
 import lombok.RequiredArgsConstructor;
 
 import java.util.ArrayList;

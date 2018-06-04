@@ -2,8 +2,8 @@ package algorithms.linear_regression;
 
 import algorithms.ensemble.model.Model;
 import algorithms.ensemble.model.TextModel;
-import optimization.Optimizer;
-import optimization.text.TextOptimizer;
+import algorithms.linear_regression.optimization.real_vector.Optimizer;
+import algorithms.linear_regression.optimization.text.TextOptimizer;
 import structures.text.Vocabulary;
 
 import java.util.ArrayList;

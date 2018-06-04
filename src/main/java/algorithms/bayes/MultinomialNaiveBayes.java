@@ -190,7 +190,7 @@ public class MultinomialNaiveBayes implements TextModel, Serializable {
             if (wordProbability != null) {
                 conditionalProbability += wordProbability;
             } else {
-                // laplace smoothing for unseen words - add 1 to avoid undefined logarithm in 0
+                // laplace smoothing for unseen words - add 1 to avoid undefined logarithm in 0, could be cached for each class
                 conditionalProbability += Math.log((1 / (double) (classDistribution.wordsCount + possibleWords)));
             }
         }

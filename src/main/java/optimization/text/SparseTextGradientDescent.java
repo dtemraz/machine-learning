@@ -1,4 +1,4 @@
-package optimization.text;
+package algorithms.linear_regression.optimization.text;
 
 import algorithms.neural_net.Activation;
 import structures.text.TF_IDF_Term;
@@ -36,7 +36,7 @@ public class SparseTextGradientDescent {
 
     private final double learningRate; // proportion of gradient by which we take next step
     private final int epochs; // maximal number of epochs the algorithm will run
-    private final int patience; // number of epochs algorithm will try to find better update from previous best update
+    private final SquaredErrorStoppingCriteria stoppingCriteria; // early termination based on the sum of squared epoch error components
 
     /**
      * Constructs instance of gradient descent with <em>learningRate</em> which will run for most <em>epochs</em>. This
@@ -44,12 +44,12 @@ public class SparseTextGradientDescent {
      *
      * @param learningRate by which gradient descent optimize theta, smaller = stable, larger = faster
      * @param epochs number of epochs algorithm will run at most
-     * @param patience number of epochs algorithm will try to find better solution than previous best
+     * @param stoppingCriteria early termination criteria for the sum of squared epoch error components
      */
-    public SparseTextGradientDescent(double learningRate, int epochs, int patience) {
+    public SparseTextGradientDescent(double learningRate, int epochs, SquaredErrorStoppingCriteria stoppingCriteria) {
         this.learningRate = learningRate;
         this.epochs = epochs;
-        this.patience = patience;
+        this.stoppingCriteria = stoppingCriteria;
     }
 
     /**
@@ -68,31 +68,27 @@ public class SparseTextGradientDescent {
         int samples = trainingSet.length;
         int epoch;
         int features = vocabulary.size();
+        double squaredError = -1; // sum of squared epoch error components, putting it outside for printing purposes
 
-        double best = Double.MAX_VALUE; // lowest found epoch error
-        int missed = 0; // number of epochs error was worse than currently best error value
         for (epoch = 0; epoch < epochs; epoch++) {
-            Vector.shuffle(trainingSet); // this is required for SGD to remove data order bias
+            Vector.shuffle(trainingSet); // this is required to remove data order bias
             double[] epochError = new double[samples];
 
             // updates coefficients for each sample in epoch
             for (int sample = 0; sample < samples; sample++) {
                 TextSample textSample = trainingSet[sample];
-                double error = getError(coefficients, epochError, features, textSample);
+                double error = getError(coefficients, features, textSample);
                 epochError[sample] = error;
                 updateCoefficients(textSample.terms, coefficients, error * learningRate);
             }
 
             // keep track of lowest found error, exiting if there is no progress for patience epochs
-            double squaredSum = Vector.squaredSum(epochError);
-            if (squaredSum < best) {
-                best = squaredSum;
-                missed = 0;
-            } else if (++missed > patience) {
+            squaredError = Vector.squaredSum(epochError);
+            if (stoppingCriteria.test(squaredError)) {
                 break;
             }
         }
-        System.out.println(String.format("converged in: %d epochs, epoch error: %.6f", epoch, best));
+        System.out.println(String.format("converged in: %d epochs, epoch error: %.6f", epoch, squaredError));
     }
 
     /**
@@ -114,20 +110,18 @@ public class SparseTextGradientDescent {
         int features = vocabulary.size();
         int epoch;
         double updateFactor = learningRate / batchSize;
-
-        double best = Double.MAX_VALUE; // lowest found epoch error so far
-        int missed = 0; // times an epoch gave worse error than currently best error value
+        double squaredError = -1; // sum of squared epoch error components, putting it outside for printing purposes
 
         for (epoch = 0; epoch < epochs; epoch++) {
             Vector.shuffle(trainingSet);
-            double[] gradient = new double[features + 1]; // change of weights is proportional to gradient, + 1 for bias
+            double[] gradient = new double[features + 1]; // change of weights is proportional to gradient, + 1 feature for bias
             double[] epochError = new double[totalSamples]; // vector of error per sample in this epoch
             int batchCount = 0; // count of samples in this batch
 
             // calculate gradient for each sample in a batch
             for (int sample = 0; sample < totalSamples; sample++) {
                 TextSample textSample = trainingSet[sample];
-                double error = getError(coefficients, epochError, features, textSample);
+                double error = getError(coefficients, features, textSample);
                 // e(n) * x(n), we will apply learning rate divided by batch size after we have seen all samples in a batch
                 epochError[sample] = error;
                 // accumulate gradient per weight until there are enough samples for a batch update
@@ -142,29 +136,25 @@ public class SparseTextGradientDescent {
             }
 
             // keep track of lowest found error, exiting if there is no progress for patience epochs
-            double squaredSum = Vector.squaredSum(epochError);
-            if (squaredSum < best) {
-                best = squaredSum;
-                missed = 0;
-            }
-            else if (++missed > patience) {
+            squaredError = Vector.squaredSum(epochError);
+            if (stoppingCriteria.test(squaredError)) {
                 break;
             }
         }
-        System.out.println(String.format("converged in: %d epochs, epoch error: %.6f", epoch, best));
+        System.out.println(String.format("converged in: %d epochs, epoch error: %.6f", epoch, squaredError));
     }
 
 
     // calculates error between predicted and expected class
-    private static double getError(double[] coefficients, double[] epochError, int features, TextSample textSample) {
+    private static double getError(double[] coefficients, int bias, TextSample textSample) {
         // sigmoid (bias + input*coefficients)
-        double estimate = Activation.SIGMOID.apply(coefficients[features] + product(textSample.terms, coefficients));
+        double estimate = Activation.SIGMOID.apply(coefficients[bias] + dotProduct(textSample.terms, coefficients));
         // difference as expected class minus estimated value
         return textSample.classId - estimate;
     }
 
     // calculates sums of words tf-idf and theta coefficients
-    private static double product(TF_IDF_Term[] terms, double[] theta) {
+    private static double dotProduct(TF_IDF_Term[] terms, double[] theta) {
         double sum = 0;
         for (TF_IDF_Term term : terms) {
             sum += term.getTfIdf() * theta[term.getId()];
@@ -178,7 +168,7 @@ public class SparseTextGradientDescent {
             coefficients[term.getId()] += term.getTfIdf() * update;
         }
         int bias = coefficients.length - 1; // bias coefficient which is in the last position
-        coefficients[bias] *= update;
+        coefficients[bias] += update; // bias has value always ON, or in practice 1
     }
 
 }

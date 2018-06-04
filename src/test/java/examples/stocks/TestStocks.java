@@ -4,8 +4,8 @@ import algorithms.neural_net.Activation;
 import algorithms.neural_net.Neuron;
 import algorithms.neural_net.learning.algorithms.DeltaRuleGradientDescent;
 import algorithms.neural_net.learning.samples.LearningSample;
-import optimization.GradientDescent;
-import optimization.StoppingCriteria;
+import algorithms.linear_regression.optimization.real_vector.GradientDescent;
+import algorithms.linear_regression.optimization.real_vector.StoppingCriteria;
 
 import java.io.BufferedReader;
 import java.io.File;

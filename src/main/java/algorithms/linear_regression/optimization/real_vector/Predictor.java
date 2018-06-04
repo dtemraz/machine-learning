@@ -1,4 +1,4 @@
-package optimization;
+package algorithms.linear_regression.optimization.real_vector;
 
 /**
  * This interface defines function that should calculate output from the given input sample and theta.

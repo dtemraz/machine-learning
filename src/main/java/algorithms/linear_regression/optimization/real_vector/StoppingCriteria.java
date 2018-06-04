@@ -1,4 +1,4 @@
-package optimization;
+package algorithms.linear_regression.optimization.real_vector;
 
 import java.util.Arrays;
 

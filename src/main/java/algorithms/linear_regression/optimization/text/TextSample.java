@@ -1,10 +1,10 @@
-package optimization.text;
+package algorithms.linear_regression.optimization.text;
 
 import lombok.RequiredArgsConstructor;
 import structures.text.TF_IDF_Term;
+import structures.text.TF_IDF_Vectorizer;
 import structures.text.Vocabulary;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -25,17 +25,12 @@ import java.util.Map;
  */
 @RequiredArgsConstructor
 class TextSample {
+
     final double classId; // class id associated with terms
-    final TF_IDF_Term[] terms; // term for each word in each message associated with class id
+    final TF_IDF_Term[] terms; // tf-idf term for each word in a message
 
     /**
      * Extracts TF-IDF value for each word in each message from <em>data</em>.
-     * <p>
-     * <strong>Side-effect:</strong> in order to conserve memory this method will replace all <em>data</em> values
-     * with null so they are free for garbage collection. It's not ideal since client might kept references to individual
-     * lists, however {@link List#clear()} is even worse since {@link java.util.ArrayList} will not invoke {@link ArrayList#trimToSize()}
-     * and therefore large lists will still occupy considerable space.
-     * </p>
      *
      * @param data messages broken into words per class
      * @param vocabulary of all possible words
@@ -50,10 +45,8 @@ class TextSample {
             List<String[]> samples = entry.getValue();
             // calculate tf-idf for each word in each sample
             for (String[] text : samples) {
-                textSamples[sample++] = new TextSample(expectedClass, vocabulary.tfIdf(text));
+                textSamples[sample++] = new TextSample(expectedClass, TF_IDF_Vectorizer.tfIdf(text, vocabulary));
             }
-            // conserve memory, although this is somewhat ugly side-effect
-            data.replace(expectedClass, samples, null);
         }
         return textSamples;
     }

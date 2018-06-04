@@ -1,19 +1,23 @@
-package optimization;
+package algorithms.linear_regression.optimization.text;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * This interface let's user configure and submit different gradient techniques to {@link algorithms.linear_regression.LogisticRegression}
  * algorithm.
- * The user may transparently to logistic regression define different GD approaches such as:
+ * <p>
+ * The user may define different gradient descent approaches, and their parameters, such as:
  * <ul>
- *  <li>stochastic</li>
+ *  <li>stochastic, sequential and parallel</li>
  *  <li>mini batch</li>
  * </ul>
- * and their appropriate parameters.
+ * </p>
  *
  * @author dtemraz
  */
 @FunctionalInterface
-public interface Optimizer {
+public interface TextOptimizer {
 
     /**
      * This method optimizes <em>coefficients</em> using one of the <strong>gradient descent</strong> techniques to achieve
@@ -22,5 +26,5 @@ public interface Optimizer {
      * @param coefficients to optimize for training set classification
      * @param trainingSet where key = class and value = texts broken into words per class
      */
-    void optimize(double[][] trainingSet, double[] values, double[] coefficients);
+    void optimize(Map<Double, List<String[]>> trainingSet, double[] coefficients);
 }

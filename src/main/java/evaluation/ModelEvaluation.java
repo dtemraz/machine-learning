@@ -2,10 +2,14 @@ package evaluation;
 
 import algorithms.ensemble.model.TextModel;
 import algorithms.ensemble.model.TextModelSupplier;
+import evaluation.summary.Summary;
+import evaluation.summary.WronglyClassified;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 
 /**
  * This class lets the user obtain {@link Summary} report from the evaluation of {@link TextModel}. There is only one method
@@ -15,6 +19,8 @@ import java.util.Map;
  * @author dtemraz
  */
 class ModelEvaluation {
+
+    private static final String LATENT_FEATURE_DELIMITER = "_x_";
 
     /**
      * Returns {@link Summary} report from evaluation of a model defined with <em>modelSupplier</em>. The model is trained with
@@ -26,6 +32,7 @@ class ModelEvaluation {
      * @return report of a model evaluation trained with <em>trainingSet</em> and validated with <em>validationSet</em>
      */
     static Summary execute(TextModelSupplier modelSupplier, Map<Double, List<String[]>> trainingSet, Map<Double, List<String[]>> validationSet) {
+        HashSet<WronglyClassified> wronglyClassified = new HashSet<>();
         // percentage of correct samples over all samples per class
         HashMap<Double, Double> classAccuracy = new HashMap<>();
         // how many times a class was mistaken by another class
@@ -51,6 +58,7 @@ class ModelEvaluation {
                     correct++;
                 } else {
                     negative++;
+                    wronglyClassified.add(new WronglyClassified(expectedClass, predicted, removeLatentFeatures(sample)));
                 }
                 confusionMatrix.get(expectedClass).merge(predicted, 1, (old, n) -> old + n);
             }
@@ -58,7 +66,19 @@ class ModelEvaluation {
         }
         // ratio of all correctly classified samples divided by a total number of samples
         double overallAccuracy = correct / (validationSet.entrySet().stream().map((e) -> e.getValue().size()).reduce(Integer::sum)).get();
-        return new Summary(overallAccuracy, classAccuracy, confusionMatrix);
+        return new Summary(overallAccuracy, classAccuracy, confusionMatrix, wronglyClassified);
+    }
+
+    private static String removeLatentFeatures(String[] features) {
+        StringJoiner joiner = new StringJoiner(" ");
+        for (String feature : features) {
+            // latent features are grouped together and put at the end, so we can stop on first
+            if (feature.startsWith(LATENT_FEATURE_DELIMITER)) {
+                break;
+            }
+            joiner.add(feature);
+        }
+        return joiner.toString();
     }
 
 }

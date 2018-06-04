@@ -1,10 +1,10 @@
-package optimization;
+package algorithms.linear_regression.optimization.real_vector;
 
 import structures.RandomizedQueue;
 import utilities.Vector;
 
 /**
- * This class implements gradient descent method for optimization of theta.
+ * This class implements gradient descent method for algorithms.linear_regression.optimization of theta.
  * This is not a general purpose gradient descent because it makes some assumptions, namely:
  * <ul>
  *   <li>least squares cost function with linear activation</li>

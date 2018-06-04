@@ -3,9 +3,10 @@ package algorithms.linear_regression;
 import algorithms.ensemble.model.Model;
 import algorithms.ensemble.model.TextModel;
 import algorithms.neural_net.Activation;
-import optimization.Optimizer;
-import optimization.text.TextOptimizer;
+import algorithms.linear_regression.optimization.real_vector.Optimizer;
+import algorithms.linear_regression.optimization.text.TextOptimizer;
 import structures.text.TF_IDF_Term;
+import structures.text.TF_IDF_Vectorizer;
 import structures.text.Vocabulary;
 import utilities.Vector;
 
@@ -13,6 +14,7 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This class implements logistic regression for {@link TextModel} and {@link Model} types of classification. The interfaces
@@ -63,7 +65,10 @@ public class LogisticRegression implements TextModel, Model, Serializable {
         this.vocabulary = vocabulary;
         // coefficients for each feature + bias
         double[] coefficients = Vector.randomArray(vocabulary.size() + 1);
+        long before = System.currentTimeMillis();
         optimizer.optimize(trainingSet, coefficients);
+        long after = System.currentTimeMillis();
+        System.out.println("training time: " + TimeUnit.MILLISECONDS.toSeconds(after - before));
         // this is inconsistent with gradient descent which stores bias in 0th array position - TODO normalize
         bias = coefficients[coefficients.length - 1];
         theta = Arrays.copyOfRange(coefficients, 0, coefficients.length - 1);
@@ -74,7 +79,10 @@ public class LogisticRegression implements TextModel, Model, Serializable {
         TrainingSet trainingSamples = TrainingSet.build(trainingSet);
         // coefficients for each feature + bias
         double[] coefficients = Vector.randomArray(trainingSet.get(0).length + 1);
+        long before = System.currentTimeMillis();
         optimizer.optimize(trainingSamples.input, trainingSamples.expected, coefficients);
+        long after = System.currentTimeMillis();
+        System.out.println("training time: " + TimeUnit.MILLISECONDS.toSeconds(after - before));
         // this is inconsistent with text gradient descent which stores bias in final array position - TODO normalize
         bias = coefficients[0];
         theta = Arrays.copyOfRange(coefficients, 1, coefficients.length);
@@ -112,7 +120,7 @@ public class LogisticRegression implements TextModel, Model, Serializable {
     // calculates dot product of words tf-idf and theta coefficients for associated words
     private double dotProduct(String[] words) {
         double sum = 0;
-        for (TF_IDF_Term term : vocabulary.tfIdf(words)) {
+        for (TF_IDF_Term term : TF_IDF_Vectorizer.tfIdf(words, vocabulary)) {
             sum += term.getTfIdf() * theta[term.getId()];
         }
         return sum;

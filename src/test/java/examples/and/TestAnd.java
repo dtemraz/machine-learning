@@ -7,8 +7,8 @@ import algorithms.neural_net.learning.algorithms.DeltaRuleStochasticGradientDesc
 import algorithms.neural_net.learning.algorithms.Perceptron;
 import algorithms.neural_net.Activation;
 import algorithms.neural_net.Neuron;
-import optimization.GradientDescent;
-import optimization.StoppingCriteria;
+import algorithms.linear_regression.optimization.real_vector.GradientDescent;
+import algorithms.linear_regression.optimization.real_vector.StoppingCriteria;
 
 import java.util.Arrays;
 import java.util.Collections;
