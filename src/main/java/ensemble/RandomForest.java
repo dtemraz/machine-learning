@@ -12,10 +12,9 @@ import java.util.function.Function;
 
 /**
  * This class implements Random Forest algorithm, an extension of {@link BootstrapAggregation}. The algorithm attempts to reduce
- * high collinear between bootstrapped classification trees by introducing variability in feature selection.
+ * high collinear between bootstrapped classification trees by introducing variability in feature selection on every split.
  * <p>
- * Each tree in forest
- * should only operate on subset of features which should make them more diverse and robust as a whole.
+ * Each tree in forest should only consider random subset of features for every split, which should make them more diverse and robust as a whole.
  * Therefore, the only change this algorithm introduces to bootstrapping aggregation is in the number of features considered
  * for splitting, with {@link RandomFeaturesOptimizer}.
  * </p>

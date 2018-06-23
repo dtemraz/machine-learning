@@ -98,6 +98,21 @@ public class Vector {
     }
 
     /**
+     * Merges vectors <em>v1</em> and <em>v2</em> into a new vector containing both.
+     *
+     * @param v1 vector to merge with v2
+     * @param v2 vector to merge with v1
+     * @return merged vectors v1 and v2
+     */
+    public static double[] merge(double[] v1, double[] v2) {
+        double[] merged = new double[v1.length + v2.length];
+        System.arraycopy(v1, 0, merged, 0, v1.length);
+        System.arraycopy(v2, 0, merged, v1.length, v2.length);
+        return merged;
+
+    }
+
+    /**
      * Implements of Knuth's shuffle which is guaranteed to be uniform and run in linear time.
      *
      * @param items to shuffle

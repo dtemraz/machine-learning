@@ -8,18 +8,24 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveAction;
 
 /**
+ * This class can be used to satisfy {@link EnsembleModelProcessor#predictions(List, double[])} with parallel evaluation
+ * of models.
+ *
  * @author dtemraz
  */
 public class ParallelProcessor {
 
-    private static final double EXECUTION_CUT_OFF = 0.05;
+    // could have been in lambda body, but lazy initialization is slow
+    private static final ForkJoinPool executor = new ForkJoinPool();
 
-    private static final ForkJoinPool executor = new ForkJoinPool(); // could have been in lambda body, but lazy initialization is slow
+    // no need to instantiate this class
+    private ParallelProcessor() { }
 
-    private ParallelProcessor() {
-
-    }
-
+    /**
+     * Returns prediction for each model in ensemble in parallel mode
+     *
+     * @see EnsembleModelProcessor#predictions(List, double[])
+     */
     public static double[] predictions(List<Model> ensemble, double[] data) {
         ConcurrentLinkedQueue<Double> predictions = new ConcurrentLinkedQueue<>();
         executor.submit(new ModelEvaluation(0, ensemble.size() - 1, data, predictions, ensemble)).join();
@@ -32,18 +38,21 @@ public class ParallelProcessor {
 
     /**
      * The class implements parallel ensemble model evaluation with the work stealing semantics. Maybe a bit unintuitive,
-     * but the class doesn't use merge step. Instead result of each model is stored in concurrent queue which is evaluated
-     * when all tasks are executed.
-     * Each element of the queue contains prediction from a given model.
+     * but the class it not an instance of {@link java.util.concurrent.RecursiveTask}. It could have merged different array
+     * pieces into a final array which would be returned, but it doesn't because reasons.
+     *
+     * Prediction of each model is stored in concurrent queue which can be evaluated once the computation finishes.
      */
     private static class ModelEvaluation extends RecursiveAction {
 
+        private static final double EXECUTION_CUT_OFF = 0.05;
+
         private final int from; // first model that should be evaluated by this task
         private final int to; // last model that should be evaluated by this task
-        private final double[] data; // data for which to make prediction
-        private final ConcurrentLinkedQueue<Double> queue; // stores prediction of each model
+        private final double[] data; // data for which to make prediction, constant between instances
+        private final ConcurrentLinkedQueue<Double> queue; // stores prediction of each model, constant reference
 
-        private final List<Model> ensemble;
+        private final List<Model> ensemble; // set of models that should be evaluated, constant between instances
 
         private ModelEvaluation(int from, int to, double[] data, ConcurrentLinkedQueue<Double> queue, List<Model> ensemble) {
             this.from = from;
@@ -61,7 +70,7 @@ public class ParallelProcessor {
                     queue.add(ensemble.get(m).predict(data));
                 }
             }
-            // recursively divide computation until there is less there are 5% models to process in current branch
+            // recursively divide computation until there is no more than 5% models to process in current branch
             else {
                 int mid = from + (to - from) / 2;
                 ModelEvaluation left = new ModelEvaluation(from, mid, data, queue, ensemble);
