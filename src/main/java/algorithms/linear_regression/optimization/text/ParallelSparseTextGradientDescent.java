@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.DoubleAdder;
  * of features concurrently. Due to sparsity, contention and mixed state updates should be reduced to very rare events.
  *
  * The algorithm should offer measurable performance lift when there are more than 10_000 samples and in those scenarios
- * should be preferred to {@link SparseTextGradientDescent#stochastic(Map, double[], Vocabulary)} optimization.
+ * should be preferred to {@link algorithms.linear_regression.optimization.text.SparseTextGradientDescent#stochastic(Map, double[], Vocabulary)} optimization.
  *
  * @see <a href="https://arxiv.org/pdf/1106.5730.pdf">hogwild</a>
  *
@@ -37,6 +37,7 @@ public class ParallelSparseTextGradientDescent {
     private final double learningRate; // proportion of gradient by which we take next step
     private final int epochs; // maximal number of epochs the algorithm will run
     private final SquaredErrorStoppingCriteria stoppingCriteria; // early termination based on the sum of squared epoch error components
+    private final boolean verbose;
 
     /**
      * Constructs instance of gradient descent with <em>learningRate</em> which will run for most <em>epochs</em>. This
@@ -47,9 +48,23 @@ public class ParallelSparseTextGradientDescent {
      * @param stoppingCriteria early termination criteria for the sum of squared epoch error components
      */
     public ParallelSparseTextGradientDescent(double learningRate, int epochs, SquaredErrorStoppingCriteria stoppingCriteria) {
+        this(learningRate, epochs, stoppingCriteria, false);
+    }
+
+    /**
+     * Constructs instance of gradient descent with <em>learningRate</em> which will run for most <em>epochs</em>. This
+     * instance will stopping learning if up to <em>patience</em> number of epochs better solution was not found.
+     *
+     * @param learningRate by which gradient descent optimize theta, smaller = stable, larger = faster
+     * @param epochs number of epochs algorithm will run at most
+     * @param stoppingCriteria early termination criteria for the sum of squared epoch error components
+     * @param verbose logs epoch number and squared error in epoch
+     */
+    public ParallelSparseTextGradientDescent(double learningRate, int epochs, SquaredErrorStoppingCriteria stoppingCriteria, boolean verbose) {
         this.learningRate = learningRate;
         this.epochs = epochs;
         this.stoppingCriteria = stoppingCriteria;
+        this.verbose = verbose;
     }
 
     /**
@@ -68,7 +83,7 @@ public class ParallelSparseTextGradientDescent {
     // performs stochastic optimization of coefficients
     private void sgdCoefficients(TextSample[] trainingSet, double[] coefficients, Vocabulary vocabulary) {
         int epoch;
-        int features = vocabulary.size();
+        int features = vocabulary.size(); // bias weight comes after all attribute weights
         AtomicDouble[] concurrentCoefficients = toConcurrent(coefficients);
         // accumulator is better choice than atomic long since we need epoch error only once and after all threads have finished
         DoubleAdder errorAccumulator = new DoubleAdder();
@@ -90,6 +105,9 @@ public class ParallelSparseTextGradientDescent {
             });
             // now that we went through all the samples, we can reduce epoch error to sum of squares
             squaredError = errorAccumulator.sumThenReset();
+            if (verbose) {
+                System.out.println("epoch: " + epoch + " , squared error: " + squaredError);
+            }
             if (stoppingCriteria.test(squaredError)) {
                 break;
             }

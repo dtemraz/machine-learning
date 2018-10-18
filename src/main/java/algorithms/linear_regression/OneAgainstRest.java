@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
  *
  * @author dtemraz
  */
-public class OneAgainstRest implements TextModel, Model{
+public class OneAgainstRest implements TextModel, Model {
 
     // instances of logistic regression specialized to classify a single class defined with the key
     private final HashMap<Double, LogisticRegression> predictors = new HashMap<>();
@@ -46,6 +46,15 @@ public class OneAgainstRest implements TextModel, Model{
         return new OneAgainstRest(vocabulary, trainingSet, optimizer);
     }
 
+    // initializes and trains instance of logistic regression per class for textual classification
+    private OneAgainstRest(Vocabulary vocabulary, Map<Double, List<String[]>> trainingSet, TextOptimizer optimizer) {
+        trainingSet.keySet().forEach(key -> {
+            double targetClass = key;
+            LogisticRegression regression = initialize(vocabulary, trainingSet, targetClass, optimizer);
+            predictors.put(targetClass, regression);
+        });
+    }
+
     /**
      * Returns {@link OneAgainstRest} instance which can be used to classify text into multiple classes.
      *
@@ -57,6 +66,16 @@ public class OneAgainstRest implements TextModel, Model{
         return new OneAgainstRest(trainingSet, optimizer);
     }
 
+    // initializes and trains instance of logistic regression per class for classification over real number vectors
+    private OneAgainstRest(List<double[]> trainingSet, Optimizer optimizer) {
+        int classIndex = trainingSet.get(0).length - 1;
+        Set<Double> classIds = trainingSet.stream().map(sample -> sample[classIndex]).collect(Collectors.toSet());
+        classIds.forEach(classId -> {
+            LogisticRegression regression = initialize(trainingSet, classId, optimizer);
+            predictors.put(classId, regression);
+        });
+    }
+
     /**
      * Returns most probable class for <em>words</em>.
      *
@@ -64,6 +83,7 @@ public class OneAgainstRest implements TextModel, Model{
      * @return most probable class for <em>words</em>
      * @throws IllegalArgumentException if words are null or empty
      */
+    @Override
     public double classify(String[] words) {
         if (words == null || words.length == 0) {
             throw new IllegalArgumentException("words must not be null or empty");
@@ -80,6 +100,9 @@ public class OneAgainstRest implements TextModel, Model{
      */
     @Override
     public double predict(double[] data) {
+        if (data == null || data.length == 0) {
+            throw new IllegalArgumentException("data must not be null or empty");
+        }
         return maxProbabilityClass(data);
     }
 
@@ -103,26 +126,7 @@ public class OneAgainstRest implements TextModel, Model{
         return predictors.entrySet().stream().max(Comparator.comparingDouble(e -> e.getValue().predict(features))).get().getKey();
     }
 
-    /*  learning methods   */
 
-    // initializes and trains instance of logistic regression per class for textual classification
-    private OneAgainstRest(Vocabulary vocabulary, Map<Double, List<String[]>> trainingSet, TextOptimizer optimizer) {
-        trainingSet.keySet().forEach(key -> {
-            double targetClass = key;
-            LogisticRegression regression = initialize(vocabulary, trainingSet, targetClass, optimizer);
-            predictors.put(targetClass, regression);
-        });
-    }
-
-    // initializes and trains instance of logistic regression per class for classification over real number vectors
-    private OneAgainstRest(List<double[]> trainingSet, Optimizer optimizer) {
-        int classIndex = trainingSet.get(0).length - 1;
-        Set<Double> classIds = trainingSet.stream().map(sample -> sample[classIndex]).collect(Collectors.toSet());
-        classIds.forEach(classId -> {
-            LogisticRegression regression = initialize(trainingSet, classId, optimizer);
-            predictors.put(classId, regression);
-        });
-    }
 
     // creates logistic regression instance from training set, trained to recognize target class among all others
     private LogisticRegression initialize(Vocabulary vocabulary, Map<Double, List<String[]>> trainingSet, Double targetClass, TextOptimizer optimizer) {

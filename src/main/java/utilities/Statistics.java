@@ -1,6 +1,8 @@
 package utilities;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This class is a utility class for common statistics operations. The class offers method to calculate chiSquare of a matrix
@@ -78,6 +80,26 @@ public class Statistics {
         }
         int degreesOfFreedom = data.length - 1;
         return Math.sqrt(sum / degreesOfFreedom);
+    }
+
+    /**
+     * Returns the most frequent element in <em>data</em>. Method runs in O(n) time and O(n) space complexity.
+     *
+     * @param data for which to find mode(most frequent element)
+     * @return the most frequent element in <em>data</em>
+     */
+    public static double mode(double[] data) {
+        Map<Double, Integer> frequencies = new HashMap<>();
+        Integer maxFrequency = Integer.MIN_VALUE;
+        Double mode = Double.NaN;
+        for (double sample : data) {
+            Integer frequency = frequencies.merge(sample, 1, (old, n) -> old + n);
+            if (frequency > maxFrequency) {
+                mode = sample;
+                maxFrequency = frequency;
+            }
+        }
+        return mode;
     }
 
 }

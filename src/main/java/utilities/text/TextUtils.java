@@ -1,5 +1,6 @@
 package utilities.text;
 
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 /**
@@ -9,6 +10,20 @@ public class TextUtils {
 
     private static final Pattern PUNCTUATIONS = Pattern.compile("[.^,@!?$\\-]");
     private static final Pattern PUNCTUATIONS_AND_NEWLINE = Pattern.compile("[.^,@!?$\\-\n]|\r\n");
+
+    // match strings which contain at least 8 digits and only digits, this is to avoid short codes
+    private static final Predicate<String> NUMERIC = Pattern.compile("^(\\d){8,}$").asPredicate();
+
+    /**
+     * Returns true if <em>msisdn</em> is a standard numeric msisdn of at least 8 digits, otherwise false.
+     * The user may assume that msisdn is <strong>alphanumeric</strong> or <em>short-code</em> sender if the method returns false.
+     *
+     * @param msisdn to check if it is numeric and consists of at least 8 digits.
+     * @return true if <em>msisdn</em> is a standard numeric msisdn of at least 8 digits, otherwise false
+     */
+    public static boolean isNumericMsisdn(String msisdn) {
+        return NUMERIC.test(msisdn);
+    }
 
     /**
      * Returns true if the <em>text</em> contains character(s) in arabic unicode range, false otherwise.

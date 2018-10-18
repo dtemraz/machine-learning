@@ -17,7 +17,7 @@ public class DocumentsSupplier implements Supplier<List<String[]>> {
     }
 
     /*
-     * credit for verification samples: https://janav.wordpress.com/2013/10/27/tf-idf-and-cosine-similarity/
+     *https://janav.wordpress.com/2013/10/27/tf-idf-and-cosine-similarity/
      */
 
     private static ArrayList<String[]> getDocuments() {

@@ -40,21 +40,21 @@ public class StratifiedTrainAndTest {
      * Data is split in stratified manner, validation set mimics class distribution observed from samples.
      *
      * @param modelSupplier supplies model which is trainable given the training <em>dat</em>
-     * @param data to train and evaluate model, split into training set and validation set according to validation ratio
+     * @param completeSet to train and evaluate model, split into training set and validation set according to validation ratio
      * @param validationRatio percentage of data reserved for validation
      * @param iterations over which summary results should be averaged
      * @return {@link Summary} averaged over number of <em>iterations</em>
      */
-    public static Summary run(TextModelSupplier modelSupplier, Map<Double, List<String[]>> data, double validationRatio, int iterations) {
+    public static Summary run(TextModelSupplier modelSupplier, Map<Double, List<String[]>> completeSet, double validationRatio, int iterations) {
         if (iterations <= 1) {
-            TrainAndTestSplit<String[]> trainAndTestSplit = split(data, validationRatio);
+            TrainAndTestSplit<String[]> trainAndTestSplit = split(completeSet, validationRatio);
             return ModelEvaluation.execute(modelSupplier, trainAndTestSplit.trainingSet, trainAndTestSplit.validationSet);
         }
 
         // if there is more than one iteration, average results across them
         List<Summary> summaries = new ArrayList<>();
         for (int i = 0; i < iterations; i++) {
-            TrainAndTestSplit<String[]> trainAndTestSplit = split(data, validationRatio);
+            TrainAndTestSplit<String[]> trainAndTestSplit = split(completeSet, validationRatio);
             summaries.add(ModelEvaluation.execute(modelSupplier, trainAndTestSplit.trainingSet, trainAndTestSplit.validationSet));
         }
         return SummaryAnalysis.average(summaries);
