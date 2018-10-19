@@ -2,7 +2,7 @@ package algorithms.linear_regression;
 
 import algorithms.ensemble.model.Model;
 import algorithms.linear_regression.optimization.real_vector.Optimizer;
-import utilities.Vector;
+import utilities.math.Vector;
 
 import java.io.Serializable;
 import java.util.Arrays;

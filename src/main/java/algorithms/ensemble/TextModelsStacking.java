@@ -8,7 +8,7 @@ import algorithms.ensemble.model.processor.TextEnsembleModelProcessor;
 import structures.text.Vocabulary;
 import structures.text.TF_IDF_Vectorizer;
 import structures.text.SparseDenseSample;
-import utilities.Vector;
+import utilities.math.Vector;
 
 import java.util.ArrayList;
 import java.util.List;

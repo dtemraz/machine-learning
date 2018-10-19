@@ -3,12 +3,14 @@ package algorithms.linear_regression.optimization.text;
 import algorithms.neural_net.SoftMaxActivation;
 import structures.text.TF_IDF_Term;
 import structures.text.Vocabulary;
-import utilities.Vector;
+import utilities.math.Vector;
 
 import java.util.Map;
 
 /**
  * @author dtemraz
+ *
+ * TODO unfinished
  */
 public class SoftMaxOptimizer {
 

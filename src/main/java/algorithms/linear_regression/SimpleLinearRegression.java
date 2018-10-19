@@ -1,6 +1,6 @@
 package algorithms.linear_regression;
 
-import utilities.Statistics;
+import utilities.math.Statistics;
 
 /**
  * This class implements a simple regression model. Once constructors {@link this#SimpleLinearRegression(double[], double[])}

@@ -1,7 +1,7 @@
 package algorithms.neural_net.learning.algorithms;
 
 import algorithms.neural_net.learning.samples.LearningSample;
-import utilities.Vector;
+import utilities.math.Vector;
 
 import java.util.List;
 import java.util.function.BiFunction;

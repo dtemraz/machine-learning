@@ -3,7 +3,7 @@ package algorithms.linear_regression.optimization.text;
 import algorithms.neural_net.Activation;
 import structures.text.TF_IDF_Term;
 import structures.text.Vocabulary;
-import utilities.Vector;
+import utilities.math.Vector;
 
 import java.util.List;
 import java.util.Map;

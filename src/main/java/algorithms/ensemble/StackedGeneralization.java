@@ -5,7 +5,7 @@ import algorithms.ensemble.model.ModelSupplier;
 import algorithms.ensemble.model.processor.EnsembleModelProcessor;
 import algorithms.ensemble.model.processor.ParallelProcessor;
 import algorithms.ensemble.model.processor.SequentialProcessor;
-import utilities.Vector;
+import utilities.math.Vector;
 
 import java.util.ArrayList;
 import java.util.List;

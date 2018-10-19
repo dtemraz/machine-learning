@@ -1,7 +1,7 @@
 package algorithms.linear_regression.optimization.real_vector;
 
 import structures.RandomizedQueue;
-import utilities.Vector;
+import utilities.math.Vector;
 
 /**
  * This class implements gradient descent method for algorithms.linear_regression.optimization of theta.

@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * TODO unfinished
+ *
  * @author dtemraz
  */
 public class SoftMaxClassifier implements TextModel {

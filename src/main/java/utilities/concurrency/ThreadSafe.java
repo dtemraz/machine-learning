@@ -7,7 +7,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * This is a marker annotation that denotes a class being a thread safe without any additional user intervention.
+ * This is a marker annotation that denotes a class being a thread safe without any additional client code synchronization.
  *
  * @author dtemraz
  */

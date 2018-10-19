@@ -1,6 +1,6 @@
 package structures;
 
-import utilities.Vector;
+import utilities.math.Vector;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;

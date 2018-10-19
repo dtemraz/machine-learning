@@ -1,6 +1,6 @@
 package algorithms.neural_net;
 
-import utilities.Vector;
+import utilities.math.Vector;
 import algorithms.neural_net.learning.samples.LearningSample;
 import algorithms.neural_net.learning.algorithms.Supervisor;
 

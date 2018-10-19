@@ -4,7 +4,7 @@ import algorithms.neural_net.Activation;
 import com.google.common.util.concurrent.AtomicDouble;
 import structures.text.TF_IDF_Term;
 import structures.text.Vocabulary;
-import utilities.Vector;
+import utilities.math.Vector;
 
 import java.util.Arrays;
 import java.util.List;

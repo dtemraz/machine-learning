@@ -8,7 +8,7 @@ import algorithms.linear_regression.optimization.text.TextOptimizer;
 import structures.text.TF_IDF_Term;
 import structures.text.TF_IDF_Vectorizer;
 import structures.text.Vocabulary;
-import utilities.Vector;
+import utilities.math.Vector;
 
 import java.io.Serializable;
 import java.util.Arrays;

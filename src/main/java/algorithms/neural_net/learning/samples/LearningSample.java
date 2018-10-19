@@ -1,7 +1,7 @@
 package algorithms.neural_net.learning.samples;
 
 import algorithms.neural_net.Neuron;
-import utilities.Vector;
+import utilities.math.Vector;
 
 import java.util.Arrays;
 

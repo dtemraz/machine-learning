@@ -9,7 +9,7 @@ import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import structures.text.Vocabulary;
-import utilities.Statistics;
+import utilities.math.Statistics;
 
 import java.util.ArrayList;
 import java.util.HashMap;
