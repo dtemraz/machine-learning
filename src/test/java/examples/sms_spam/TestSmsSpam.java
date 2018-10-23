@@ -1,8 +1,12 @@
 package examples.sms_spam;
 
+import algorithms.WithThreshold;
 import algorithms.ensemble.model.TextModel;
 import algorithms.linear_regression.LogisticRegression;
+import algorithms.linear_regression.optimization.text.MultiClassTextOptimizer;
+import algorithms.linear_regression.optimization.text.ParallelSoftMaxOptimizer;
 import algorithms.linear_regression.optimization.text.ParallelSparseTextGradientDescent;
+import algorithms.linear_regression.optimization.text.SoftMaxOptimizer;
 import algorithms.linear_regression.optimization.text.SparseTextGradientDescent;
 import algorithms.linear_regression.optimization.text.SquaredErrorStoppingCriteria;
 import algorithms.linear_regression.optimization.text.TextOptimizer;
@@ -90,22 +94,31 @@ public class TestSmsSpam {
 
             SquaredErrorStoppingCriteria stoppingCriteria = SquaredErrorStoppingCriteria.squaredErrorBellowTolerance(0.5);
 
-            TextOptimizer optimizer = (x, w) -> new SparseTextGradientDescent(0.0003, 40_000, stoppingCriteria).stochastic(x, w, v);
-            TextOptimizer optimizerBatch = (x, w) -> new SparseTextGradientDescent(0.003, 26_000, stoppingCriteria).miniBatch(x, w, 120, v);
-            TextOptimizer hogwild = (x, w) -> new ParallelSparseTextGradientDescent(0.0003, 30_000, stoppingCriteria).stochastic(x, w, v);
+            TextOptimizer sgd = (x, w) -> new SparseTextGradientDescent(0.0003, 10_000, stoppingCriteria, 0, true).stochastic(x, w, v);
+            TextOptimizer optimizerBatch = (x, w) -> new SparseTextGradientDescent(0.003, 10_000, stoppingCriteria, 0.1, true).miniBatch(x, w, 120, v);
+            TextOptimizer hogwild = (x, w) -> new ParallelSparseTextGradientDescent(0.0003, 10_000, stoppingCriteria, 0, true).stochastic(x, w, v);
+            MultiClassTextOptimizer softMax = (x, w) -> new SoftMaxOptimizer(0.0003, 10_000, 0, true).stochastic(x, w, v);
+            MultiClassTextOptimizer parallelSoftMax = (x, w) -> new ParallelSoftMaxOptimizer(0.0003, 10_000, 0, true).stochastic(x, w, v);
 
+//            epoch: 9999 , squared error: 11.175443484192442
+//            converged in: 10000 epochs, epoch error: 11,175443
+//            training time: 12
+//            overall accuracy : 0.9856373429084381
+//            spams caught: 0.9196428571428571
+//            hams blocked: 0.00414651002073255
 
-//            TextModel oneVSrest = OneAgainstRest.getTextModel(v, smsCorpus, hogwild);
-            TextModel lgr = LogisticRegression.getTextModel(v, smsCorpus, hogwild);
-//            TextModel tlgr = WithThreshold.getTextModel(v, smsCorpus, hogwild);
+//            TextModel textModel = OneAgainstRest.getTextModel(v, smsCorpus, hogwild);
+//            TextModel textModel = LogisticRegression.getTextModel(v, smsCorpus, hogwild);
+            TextModel textModel = WithThreshold.textModel(LogisticRegression.getTextModel(v, smsCorpus, optimizerBatch), 0.5);
+//            TextModel textModel = SoftMaxRegression.getTextModel(v, smsCorpus, parallelSoftMax);
 
-//            MultinomialNaiveBayes mnb = new MultinomialNaiveBayes(smsCorpus);
+//            MultinomialNaiveBayes textModel = new MultinomialNaiveBayes(smsCorpus);
 
             int spamPositive = 0;
             int spamNegative = 0;
             for (String message : dataSet.validationSpam) {
 //                if (oneVSrest.classify(message.trim().toLowerCase().split("\\s+")) == 0D) {
-                if (lgr.classify(message.trim().toLowerCase().split("\\s+")) < 0.5) {
+                if (textModel.classify(message.trim().toLowerCase().split("\\s+")) < 0.5) {
                     spamPositive++;
                 } else {
                     spamNegative++;
@@ -116,7 +129,7 @@ public class TestSmsSpam {
             int hamNegative = 0;
             for (String message : dataSet.validationHam) {
 //                if (oneVSrest.classify(message.trim().toLowerCase().split("\\s+")) == 1D) {
-                if (lgr.classify(message.trim().toLowerCase().split("\\s+")) >= 0.5D) {
+                if (textModel.classify(message.trim().toLowerCase().split("\\s+")) >= 0.5D) {
                     hamPositive++;
                 } else {
                     hamNegative++;
@@ -128,31 +141,6 @@ public class TestSmsSpam {
             overall.add(overallA);
             spamsCaught.add(sc);
             blockedHams.add(bh);
-
-
-//            ArrayList<String[]> validationSet = new ArrayList<>();
-//            System.out.println("resampling");
-//            int x = 1000;
-//            for (int resample = 0; resample < x; resample++) {
-//                validationSet.addAll(dataSet.validationHam.stream().map(message -> message.trim().toLowerCase().split("\\s+")).collect(Collectors.toList()));
-//            }
-
-//            MultinomialNaiveBayes mnb = new MultinomialNaiveBayes(smsCorpus);
-//            int positive = 0;
-//            System.out.println("warming up");
-//            for (String[] s : validationSet) {
-//                if (mnb.classify(s) > 0) {
-//                    positive++;
-//                }
-//            }
-//
-//            System.out.println("benchmarking, size: " + validationSet.size());
-//            long before = System.currentTimeMillis();
-//            for (String[] s : validationSet) {
-//                mnb.classify(s);
-//            }
-//            long after = System.currentTimeMillis();
-//            System.out.println("time millis: " + (after - before) +  " positive " + positive);
         }
 
         System.out.println("overall accuracy : " + (overall.stream().reduce(Double::sum).get()) / runs);

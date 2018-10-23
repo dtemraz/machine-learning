@@ -1,0 +1,106 @@
+package algorithms.linear_regression;
+
+import algorithms.ensemble.model.TextModel;
+import algorithms.linear_regression.optimization.text.MultiClassTextOptimizer;
+import algorithms.neural_net.StableSoftMaxActivation;
+import structures.text.TF_IDF_Term;
+import structures.text.TF_IDF_Vectorizer;
+import structures.text.Vocabulary;
+import utilities.math.Vector;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
+/**
+ * This class implements SoftMax regression which lets users classify into multiple classes. SoftMax classifier is <strong>discriminative</strong> classifier,
+ * and as such tends to give better results when there is exactly one class that matches user input.
+ * <p>
+ * There is a factory method {@link #getTextModel(Vocabulary, Map, MultiClassTextOptimizer)} which initializes and trains SoftMaxRegression for textual classification.
+ * The user is able to classify text via {@link #classify(String[])} into one of the classes defined in training set.
+ * </p>
+ *
+ * @author dtemraz
+ */
+public class SoftMaxRegression implements TextModel {
+
+    private final Vocabulary vocabulary; // indexed words and their IDF values
+    private final Map<Double, double[]> theta = new HashMap<>(); // coefficients for each class
+    private final Map<Double, Double> bias = new HashMap<>(); // bias terms for each class
+    private final Double[] classes; // cache classes so there is no need to create array for each input
+
+    /**
+     * Returns {@link TextModel} instance trained with <em>softMaxOptimizer</em> over <em>trainingSet</em> which can be used for multi class
+     * classification of textual data.
+     *
+     * @param vocabulary which defines possible words, their global indexes and IDF values
+     * @param trainingSet map of classes and messages broken into words
+     * @param softMaxOptimizer instance to train classifier for textual classification
+     * @return {@link TextModel} instance which can be used to classify text into multiple classes
+     */
+    public static TextModel getTextModel(Vocabulary vocabulary, Map<Double, List<String[]>> trainingSet, MultiClassTextOptimizer softMaxOptimizer) {
+        return new SoftMaxRegression(vocabulary, trainingSet, softMaxOptimizer);
+    }
+
+    // initializes and trains instance of SoftMax classifier for text classification
+    private SoftMaxRegression(Vocabulary vocabulary, Map<Double, List<String[]>> trainingSet, MultiClassTextOptimizer softMaxOptimizer) {
+        this.vocabulary = vocabulary;
+        Map<Double, double[]> classCoefficients = initializeTrainingCoefficients(vocabulary, trainingSet);
+        train(trainingSet, classCoefficients, softMaxOptimizer);
+        updateCoefficients(classCoefficients);
+        classes = theta.keySet().toArray(new Double[theta.size()]);
+    }
+
+    @Override
+    public double classify(String[] words) {
+        return maxProbabilityClass(words);
+    }
+
+    // calculates dot product of words tf-idf and theta coefficients for associated words
+    private double maxProbabilityClass(String[] words) {
+        double[] weightedInput = new double[classes.length];
+        TF_IDF_Term[] tf_idf_terms = TF_IDF_Vectorizer.tfIdf(words, vocabulary);
+        // calculate weighted input X*(W)T for each class
+        for (int classId = 0; classId < classes.length; classId++) {
+            double clazz = classes[classId];
+            double[] coefficients = theta.get(clazz);
+            double sum = 0;
+            for (TF_IDF_Term term : tf_idf_terms) {
+                sum += term.getTfIdf() * coefficients[term.getId()];
+            }
+            // weighted input for each class in classes array, ordering is same between these arrays
+            weightedInput[classId] = sum + bias.get(clazz);
+        }
+        // selects class with highest SoftMax score given the weighted input
+        return classes[Vector.maxComponentId(StableSoftMaxActivation.apply(weightedInput))];
+    }
+
+    // optimizes class coefficients for SoftMax classification
+    private void train(Map<Double, List<String[]>> trainingSet, Map<Double, double[]> classCoefficients, MultiClassTextOptimizer softMaxOptimizer) {
+        long before = System.currentTimeMillis();
+        softMaxOptimizer.optimize(trainingSet, classCoefficients);
+        long after = System.currentTimeMillis();
+        System.out.println("training time: " + TimeUnit.MILLISECONDS.toSeconds(after - before));
+    }
+
+    // updates state of internal coefficients and bias for each class
+    private void updateCoefficients(Map<Double, double[]> classCoefficients) {
+        classCoefficients.forEach((id, coefficients) -> {
+            theta.put(id, Arrays.copyOfRange(coefficients, 0, coefficients.length - 1));
+            bias.put(id, coefficients[coefficients.length - 1]);
+        });
+    }
+
+    // initializes coefficients for each class in random value between 0 and 1
+    private Map<Double, double[]> initializeTrainingCoefficients(Vocabulary vocabulary, Map<Double, List<String[]>> trainingSet) {
+        Map<Double, double[]> classCoefficients = new HashMap<>();
+        trainingSet.forEach((id, samples) -> {
+            // coefficients for each feature and + 1 for bias
+            classCoefficients.put(id, Vector.randomArray(vocabulary.size() + 1));
+        });
+        return classCoefficients;
+    }
+
+}

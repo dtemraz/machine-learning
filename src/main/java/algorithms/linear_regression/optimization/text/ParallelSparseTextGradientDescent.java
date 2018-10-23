@@ -1,7 +1,7 @@
 package algorithms.linear_regression.optimization.text;
 
 import algorithms.neural_net.Activation;
-import com.google.common.util.concurrent.AtomicDouble;
+import com.google.common.util.concurrent.AtomicDoubleArray;
 import structures.text.TF_IDF_Term;
 import structures.text.Vocabulary;
 import utilities.math.Vector;
@@ -37,7 +37,8 @@ public class ParallelSparseTextGradientDescent {
     private final double learningRate; // proportion of gradient by which we take next step
     private final int epochs; // maximal number of epochs the algorithm will run
     private final SquaredErrorStoppingCriteria stoppingCriteria; // early termination based on the sum of squared epoch error components
-    private final boolean verbose;
+    private final double lambda; // regularization constant for l2 regularization
+    private final boolean verbose; // prints epoch error at the end of each epoch if set to true
 
     /**
      * Constructs instance of gradient descent with <em>learningRate</em> which will run for most <em>epochs</em>. This
@@ -48,7 +49,7 @@ public class ParallelSparseTextGradientDescent {
      * @param stoppingCriteria early termination criteria for the sum of squared epoch error components
      */
     public ParallelSparseTextGradientDescent(double learningRate, int epochs, SquaredErrorStoppingCriteria stoppingCriteria) {
-        this(learningRate, epochs, stoppingCriteria, false);
+        this(learningRate, epochs, stoppingCriteria, 0, false);
     }
 
     /**
@@ -60,10 +61,11 @@ public class ParallelSparseTextGradientDescent {
      * @param stoppingCriteria early termination criteria for the sum of squared epoch error components
      * @param verbose logs epoch number and squared error in epoch
      */
-    public ParallelSparseTextGradientDescent(double learningRate, int epochs, SquaredErrorStoppingCriteria stoppingCriteria, boolean verbose) {
+    public ParallelSparseTextGradientDescent(double learningRate, int epochs, SquaredErrorStoppingCriteria stoppingCriteria, double lambda, boolean verbose) {
         this.learningRate = learningRate;
         this.epochs = epochs;
         this.stoppingCriteria = stoppingCriteria;
+        this.lambda = lambda;
         this.verbose = verbose;
     }
 
@@ -77,19 +79,17 @@ public class ParallelSparseTextGradientDescent {
      * @param vocabulary of words and their indexes
      */
     public void stochastic(Map<Double, List<String[]>> data, double[] coefficients, Vocabulary vocabulary) {
-        sgdCoefficients(TextSample.extractSamples(data, vocabulary), coefficients, vocabulary);
+        sgdCoefficients(TextSample.extractSamples(data, vocabulary), coefficients);
     }
 
     // performs stochastic optimization of coefficients
-    private void sgdCoefficients(TextSample[] trainingSet, double[] coefficients, Vocabulary vocabulary) {
-        int epoch;
-        int features = vocabulary.size(); // bias weight comes after all attribute weights
-        AtomicDouble[] concurrentCoefficients = toConcurrent(coefficients);
+    private void sgdCoefficients(TextSample[] trainingSet, double[] coefficients) {
+        AtomicDoubleArray concurrentCoefficients = toConcurrent(coefficients);
         // accumulator is better choice than atomic long since we need epoch error only once and after all threads have finished
         DoubleAdder errorAccumulator = new DoubleAdder();
         double squaredError = -1; // sum of squared epoch error components, putting it outside for printing purposes
         Vector.shuffle(trainingSet);
-
+        int epoch;
         for (epoch = 0; epoch < epochs; epoch++) {
             // shuffling may speed up convergence, however shuffling is a bottleneck since this is sequential implementation, therefore
             // allow small probability that it randomly occurs. This is okay since (parallel) SGD is already fuzzy.
@@ -99,7 +99,7 @@ public class ParallelSparseTextGradientDescent {
             }
             // updates coefficients in parallel for each sample in epoch
             Arrays.stream(trainingSet).parallel().forEach(txt -> {
-                double error = getError(concurrentCoefficients, features, txt);
+                double error = getError(concurrentCoefficients, txt);
                 updateCoefficients(txt.terms, concurrentCoefficients, error * learningRate);
                 errorAccumulator.add(error * error);
             });
@@ -118,44 +118,42 @@ public class ParallelSparseTextGradientDescent {
     }
 
     // calculates error between predicted and expected class
-    private static double getError(AtomicDouble[] coefficients, int biasIndex, TextSample textSample) {
-        double bias = coefficients[biasIndex].get();
+    private static double getError(AtomicDoubleArray coefficients, TextSample textSample) {
+        double bias = coefficients.get(coefficients.length() - 1);
         double estimate = Activation.SIGMOID.apply(bias + dotProduct(textSample.terms, coefficients));
         // difference as expected class minus estimated value
         return textSample.classId - estimate;
     }
 
     // calculates sums of words tf-idf and theta coefficients
-    private static double dotProduct(TF_IDF_Term[] terms, AtomicDouble[] theta) {
+    private static double dotProduct(TF_IDF_Term[] terms, AtomicDoubleArray theta) {
         double sum = 0;
         for (TF_IDF_Term term : terms) {
-            sum += term.getTfIdf() * theta[term.getId()].get();
+            sum += term.getTfIdf() * theta.get(term.getId());
         }
         return sum;
     }
 
     // updates coefficients and bias with value proportional to TF-IDF and update value
-    private static void updateCoefficients(TF_IDF_Term[] terms, AtomicDouble[] coefficients, double update) {
-        for (TF_IDF_Term term : terms) {
-            coefficients[term.getId()].addAndGet(term.getTfIdf() * update);
-        }
-        int bias = coefficients.length - 1; // bias coefficient which is in the last position
-        coefficients[bias].addAndGet(update); // bias has value always ON, or in practice 1
+    private void updateCoefficients(TF_IDF_Term[] terms, AtomicDoubleArray coefficients, double update) {
+        L2Regularization.update(terms, coefficients, update, lambda, learningRate);
+        int bias = coefficients.length() - 1; // bias coefficient which is in the last position
+        coefficients.addAndGet(bias, update); // bias has value always ON, or in practice 1
     }
 
     // creates concurrent copy of the coefficients which supports lock free update
-    private static AtomicDouble[] toConcurrent(double[] coefficients) {
-        AtomicDouble[] concurrent = new AtomicDouble[coefficients.length];
+    private static AtomicDoubleArray toConcurrent(double[] coefficients) {
+        AtomicDoubleArray concurrent = new AtomicDoubleArray(coefficients.length);
         for (int i = 0; i < coefficients.length; i++) {
-            concurrent[i] = new AtomicDouble(coefficients[i]);
+            concurrent.set(i, coefficients[i]);
         }
         return concurrent;
     }
 
     // copies calculated concurrent coefficients into caller's coefficients
-    private static void writeBack(AtomicDouble[] concurrentCoefficients, double[] coefficients) {
+    private static void writeBack(AtomicDoubleArray concurrentCoefficients, double[] coefficients) {
         for (int i = 0; i < coefficients.length; i++) {
-            coefficients[i] = concurrentCoefficients[i].get();
+            coefficients[i] = concurrentCoefficients.get(i);
         }
     }
 

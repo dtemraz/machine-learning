@@ -1,6 +1,7 @@
 package algorithms.linear_regression.optimization.text;
 
 import algorithms.neural_net.Activation;
+import lombok.RequiredArgsConstructor;
 import structures.text.TF_IDF_Term;
 import structures.text.Vocabulary;
 import utilities.math.Vector;
@@ -32,11 +33,14 @@ import java.util.Map;
  *
  * @author dtemraz
  */
+@RequiredArgsConstructor
 public class SparseTextGradientDescent {
 
     private final double learningRate; // proportion of gradient by which we take next step
     private final int epochs; // maximal number of epochs the algorithm will run
     private final SquaredErrorStoppingCriteria stoppingCriteria; // early termination based on the sum of squared epoch error components
+    private final double lambda; // regularization constant for l2 regularization
+    private final boolean verbose; // prints epoch and end epoch error at the end of each iteration
 
     /**
      * Constructs instance of gradient descent with <em>learningRate</em> which will run for most <em>epochs</em>. This
@@ -47,9 +51,7 @@ public class SparseTextGradientDescent {
      * @param stoppingCriteria early termination criteria for the sum of squared epoch error components
      */
     public SparseTextGradientDescent(double learningRate, int epochs, SquaredErrorStoppingCriteria stoppingCriteria) {
-        this.learningRate = learningRate;
-        this.epochs = epochs;
-        this.stoppingCriteria = stoppingCriteria;
+        this(learningRate, epochs, stoppingCriteria, 0, false);
     }
 
     /**
@@ -84,6 +86,9 @@ public class SparseTextGradientDescent {
 
             // keep track of lowest found error, exiting if there is no progress for patience epochs
             squaredError = Vector.squaredSum(epochError);
+            if (verbose) {
+                System.out.println("epoch: " + epoch + " , squared error: " + squaredError);
+            }
             if (stoppingCriteria.test(squaredError)) {
                 break;
             }
@@ -125,18 +130,23 @@ public class SparseTextGradientDescent {
                 // e(n) * x(n), we will apply learning rate divided by batch size after we have seen all samples in a batch
                 epochError[sample] = error;
                 // accumulate gradient per weight until there are enough samples for a batch update
-                updateCoefficients(textSample.terms, gradient, error);
+                updateGradient(textSample.terms, gradient, error);
 
                 batchCount++;
                 if (batchCount == batchSize || sample == totalSamples - 1) {
                     // ΔWk(n) = e(n) * η * x(n), gradient contains e(n) * x(n), apply learning rate on gradient for final value
-                    Vector.mergeSum(coefficients, Vector.multiply(gradient, updateFactor));
+                    for (int i = 0; i < coefficients.length; i++) {
+                        coefficients[i] += (gradient[i] * updateFactor) - (lambda * updateFactor * coefficients[i]);
+                    }
                     batchCount = 0;
                 }
             }
 
             // keep track of lowest found error, exiting if there is no progress for patience epochs
             squaredError = Vector.squaredSum(epochError);
+            if (verbose) {
+                System.out.println("epoch: " + epoch + " , squared error: " + squaredError);
+            }
             if (stoppingCriteria.test(squaredError)) {
                 break;
             }
@@ -162,11 +172,18 @@ public class SparseTextGradientDescent {
         return sum;
     }
 
-    // updates coefficients and bias with value proportional to TF-IDF and update value
-    private static void updateCoefficients(TF_IDF_Term[] terms, double[] coefficients, double update) {
+    // updates gradient for this sample proportional to TF-IDF and update value
+    private static void updateGradient(TF_IDF_Term[] terms, double[] coefficients, double update) {
         for (TF_IDF_Term term : terms) {
             coefficients[term.getId()] += term.getTfIdf() * update;
         }
+        int bias = coefficients.length - 1; // bias coefficient which is in the last position
+        coefficients[bias] += update; // bias has value always ON, or in practice 1
+    }
+
+    // updates coefficients and bias with value proportional to TF-IDF and update value applying L2 regularization if lambda > 0
+    private void updateCoefficients(TF_IDF_Term[] terms, double[] coefficients, double update) {
+        L2Regularization.update(terms, coefficients, update, lambda, learningRate);
         int bias = coefficients.length - 1; // bias coefficient which is in the last position
         coefficients[bias] += update; // bias has value always ON, or in practice 1
     }

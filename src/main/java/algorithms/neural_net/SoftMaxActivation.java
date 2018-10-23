@@ -3,11 +3,20 @@ package algorithms.neural_net;
 import java.util.HashMap;
 
 /**
+ * This class computes SoftMax function for a given vector. There is also numerically stable version of this clas {@link StableSoftMaxActivation}
+ * which is more robust against <em>underflow</em> and <em>overflow</em>.
+ *
  * @author dtemraz
  */
 public class SoftMaxActivation {
 
-    public static double[] softMax(double[] input) {
+    /**
+     * Computes SoftMax function for <em>input</em> vector.
+     *
+     * @param input vector for which to compute SoftMax function
+     * @return SoftMax function for <em>input</em> vector
+     */
+    public static double[] apply(double[] input) {
         HashMap<Double, Double> exponents = new HashMap<>();
         double sum = 0;
         for (double x : input) {

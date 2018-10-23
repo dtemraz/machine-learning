@@ -96,6 +96,7 @@ public class LogisticRegression implements TextModel, Model, Serializable {
      * @return most probable class for message consisting of <em>words</em>
      * @throws IllegalArgumentException if words are null or empty
      */
+    @Override
     public double classify(String[] words) {
         if (words == null || words.length == 0) {
             throw new IllegalArgumentException("words must not be null or empty");
@@ -110,6 +111,7 @@ public class LogisticRegression implements TextModel, Model, Serializable {
      * @return most probable class for message consisting of <em>words</em>
      * @throws IllegalArgumentException if words are null or empty
      */
+    @Override
     public double predict(double[] explanatory) {
         if (explanatory == null || explanatory.length == 0) {
             throw new IllegalArgumentException("explanatory features must not be null or empty");
