@@ -5,8 +5,6 @@ import algorithms.cart.optimization.CostFunction;
 import algorithms.cart.optimization.RandomFeaturesOptimizer;
 import algorithms.ensemble.committee.CommitteeOfExperts;
 import algorithms.ensemble.model.Model;
-import structures.text.Vocabulary;
-import structures.text.TF_IDF_Vectorizer;
 import utilities.Sampler;
 
 import java.util.ArrayList;
@@ -41,24 +39,13 @@ public class RandomForest {
     private final int trees; // number of subsets(samples) to derive from original set
     private final CommitteeOfExperts committeeOfExperts; // algorithms.ensemble model in which individual trees vote for prediction
 
-    private final Vocabulary vocabulary;
-
     public RandomForest(List<double[]> dataSet, double resampleRatio, int trees) {
-        this(null, dataSet, resampleRatio, trees, DEFAULT_CANDIDATES);
-    }
-
-    public RandomForest(Vocabulary vocabulary, List<double[]> dataSet, double resampleRatio, int trees) {
         this(dataSet, resampleRatio, trees, DEFAULT_CANDIDATES);
     }
 
     public RandomForest(List<double[]> dataSet, double resampleRatio, int trees, Function<Integer, Integer> candidates) {
-        this(null, dataSet, resampleRatio, trees, candidates);
-    }
-
-    public RandomForest(Vocabulary vocabulary, List<double[]> dataSet, double resampleRatio, int trees, Function<Integer, Integer> candidates) {
         this.resampleRatio = resampleRatio;
         this.trees = trees;
-        this.vocabulary = vocabulary;
         int features = dataSet.get(0).length - 1;
         RandomFeaturesOptimizer optimizer = optimizer(features, candidates.apply(features));
         List<Model> ensembleModel = new ArrayList<>();
@@ -75,10 +62,6 @@ public class RandomForest {
      */
     public double classify(double[] data) {
         return committeeOfExperts.classify(data);
-    }
-
-    public double classify(String[] words) {
-        return committeeOfExperts.classify(TF_IDF_Vectorizer.vectorize(words, vocabulary));
     }
 
     /**

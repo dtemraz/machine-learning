@@ -8,21 +8,19 @@ import utilities.math.Vector;
  * This is not a general purpose gradient descent because it makes some assumptions, namely:
  * <ul>
  *   <li>least squares cost function with linear activation</li>
- *    or
  *   <li>cross entropy cost function with sigmoid activation</li>
  * </ul>
  *
  * These assumptions simplify calculation a little bit because they lead to a very simple coefficient update rule:
  *  <p>ΔWk(n) = e(n) * η * x(n)</p>
  *
- * <p>
- * The class offers three methods to update theta/weights:
+ * <p>The class offers three methods to update theta/weights:</p>
  * <ul>
  *     <li>{@link #stochastic(double[][], double[], double[], Predictor)} which makes update after each sample</li>
  *     <li>{@link #batch(double[][], double[], double[], Predictor)} which makes update after all samples are seen</li>
  *     <li>{@link #miniBatch(double[][], double[], double[], int, Predictor)} which makes update after batch size samples</li>
  * </ul>
- * </p>
+ *
  * @author dtemraz
  */
 public class GradientDescent {
@@ -103,6 +101,7 @@ public class GradientDescent {
      * @param in matrix of input samples, each row defines a single sample
      * @param out vector of values associated with samples
      * @param coefficients to optimize
+     * @param batchSize number of samples in a batch over which to compute gradient
      * @param predictor function that calculates value from the sample and <em>theta</em>
      */
     public void miniBatch(double[][] in, double[] out, double[] coefficients, int batchSize, Predictor predictor) {

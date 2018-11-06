@@ -59,6 +59,7 @@ public class ParallelSparseTextGradientDescent {
      * @param learningRate by which gradient descent optimize theta, smaller = stable, larger = faster
      * @param epochs number of epochs algorithm will run at most
      * @param stoppingCriteria early termination criteria for the sum of squared epoch error components
+     * @param lambda regularization penalty
      * @param verbose logs epoch number and squared error in epoch
      */
     public ParallelSparseTextGradientDescent(double learningRate, int epochs, SquaredErrorStoppingCriteria stoppingCriteria, double lambda, boolean verbose) {

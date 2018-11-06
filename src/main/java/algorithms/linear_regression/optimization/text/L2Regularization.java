@@ -8,13 +8,15 @@ import structures.text.TF_IDF_Term;
  * <p>
  * Again, there is assumption of cost function and activation which generate update rule: ΔWk(n) = e(n) * η * x(n).
  * </p>
- * Complete expression: Wj = Wj + (a*(Y - h(x)Xj) - lambda*a*Wj)
+ *
+ * Complete expression: {@literal Wj = Wj + (a*(Y - h(x)Xj) - lambda*a*Wj)}
+ *
  * @author dtemraz
  */
 public class L2Regularization {
 
     /**
-     * Updates <em>coefficients</em> with <em>update</em> multiplied by <em>terms</em>, additionally applying regularization penalty(L2) if lambda > 0.
+     * Updates <em>coefficients</em> with <em>update</em> multiplied by <em>terms</em>, additionally applying regularization penalty(L2) if lambda &gt; 0.
      *
      * @param terms        corresponding to message to classify
      * @param coefficients vector of all coefficients in this model
@@ -30,7 +32,7 @@ public class L2Regularization {
     }
 
     /**
-     * Updates <em>coefficients</em> with <em>update</em> multiplied by <em>terms</em>, additionally applying regularization penalty(L2) if lambda > 0.
+     * Updates <em>coefficients</em> with <em>update</em> multiplied by <em>terms</em>, additionally applying regularization penalty(L2) if lambda &gt; 0.
      * <p>
      * This method is intended to be used in parallel optimizers.
      * </p>

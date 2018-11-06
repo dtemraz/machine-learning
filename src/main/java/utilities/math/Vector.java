@@ -3,9 +3,7 @@ package utilities.math;
 import java.util.Random;
 
 /**
- * This class offers utility methods for vector operations and by vector it's meant array. However, it is useful to think
- * in terms of vectors within machine learning domain.
- * <p>
+ * This class offers utility methods for vector operations and by vector it's meant array.
  * <p>
  * The method {@link #dotProduct(double[], double[])} calculates dot product of two vectors,
  * and {@link #copyWithFirst(double[], double)} copies the content of given array into new array and injects the 0th value

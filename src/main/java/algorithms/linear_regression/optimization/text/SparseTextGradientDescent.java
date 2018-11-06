@@ -21,10 +21,8 @@ import java.util.Map;
  * </ul>
  * and either of these methods can be used to satisfy {@link TextOptimizer#optimize(Map, double[])} method via functional invocation.
  *
- * For example:
  * <p>
- * <em>TextOptimizer optimizer = (x, w) -> new SparseTextGradientDescent(0.0003, 40_000, 200).stochastic(x, w, v)</em>
- * can be passed to constructor of {@link algorithms.linear_regression.LogisticRegression}.
+ * For example: <strong>{@literal TextOptimizer optimizer = (x, w) -> new SparseTextGradientDescent(0.0003, 40_000, 200).stochastic(x, w, v)}</strong>.
  * </p>
  *
  * Text classification assumes very large number of features(words) and therefore operations on vectors of such dimensions are

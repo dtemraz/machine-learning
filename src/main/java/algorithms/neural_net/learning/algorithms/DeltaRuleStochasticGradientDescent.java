@@ -15,13 +15,12 @@ import java.util.function.BiFunction;
  *
  * This algorithm is specialized version of <em>back propagation</em>, it only works for single layer networks.
  *
- * <p>
- * The implementation given in this class is <em>specialized</em> and will work only with:
+ * <p>The implementation given in this class is <em>specialized</em> and will work only with:</p>
  * <ul>
  *     <li>linear activation, {@link Activation#IDENTITY} with MSE cost function</li>
  *     <li>unipolar sigmoid, {@link Activation#SIGMOID} with CROSS ENTROPY cost function</li>
  * </ul>
- * </p>
+ *
  *
  * This implementation provides online(stochastic) non_linear.supervised learning model which applies update after each learning sample.
  * The update rule for the special cases defied in paragraph above is:

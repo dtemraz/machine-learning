@@ -16,11 +16,6 @@ public class SequentialProcessor {
     // no need to instantiate this class
     private SequentialProcessor() { }
 
-    /**
-     * Returns prediction for each model in algorithms.ensemble in sequential mode
-     *
-     * @see EnsembleModelProcessor#predictions(List, double[])
-     */
     public static double[] predictions(List<Model> ensemble, double[] data) {
         return ensemble.stream().mapToDouble(model -> model.predict(data)).toArray();
     }

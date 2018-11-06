@@ -20,7 +20,8 @@ public interface Optimizer {
      * classification of a <em>trainingSet</em>.
      *
      * @param coefficients to optimize for training set classification
-     * @param trainingSet where key = class and value = texts broken into words per class
+     * @param expectedValues class labels associated with <em>trainingSet</em>
+     * @param trainingSet each row represent a single learning sample whose class label is found in a matching column ni <em>expectedValues</em>
      */
-    void optimize(double[][] trainingSet, double[] values, double[] coefficients);
+    void optimize(double[][] trainingSet, double[] expectedValues, double[] coefficients);
 }

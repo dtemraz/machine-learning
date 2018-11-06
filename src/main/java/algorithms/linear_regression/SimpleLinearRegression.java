@@ -3,9 +3,8 @@ package algorithms.linear_regression;
 import utilities.math.Statistics;
 
 /**
- * This class implements a simple regression model. Once constructors {@link this#SimpleLinearRegression(double[], double[])}
- * finishes, class will find best fitting line according to least squares criterion: Q=∑(expected(i)−calculated(i))^2 and
- * user will be able to make single variable regression with {@link #predict(double)}.
+ * This class implements a simple regression model. Once constructors finishes, class will find best fitting line according to
+ * least squares criterion: Q=∑(expected(i)−calculated(i))^2 and user will be able to make single variable regression with {@link #predict(double)}.
  *
  * @author dtemraz
  */

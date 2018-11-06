@@ -6,13 +6,12 @@ import java.util.Map;
 /**
  * This interface let's user configure and submit different gradient techniques to {@link algorithms.linear_regression.LogisticRegression}
  * algorithm.
- * <p>
- * The user may define different gradient descent approaches, and their parameters, such as:
+ *
+ * <p>The user may define different gradient descent approaches, and their parameters, such as:</p>
  * <ul>
  *  <li>stochastic, sequential and parallel</li>
  *  <li>mini batch</li>
  * </ul>
- * </p>
  *
  * @author dtemraz
  */

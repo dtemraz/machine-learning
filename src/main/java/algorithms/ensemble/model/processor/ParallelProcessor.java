@@ -23,11 +23,6 @@ public class ParallelProcessor {
     private ParallelProcessor() { }
 
 
-    /**
-     * Returns prediction for each model in algorithms.ensemble in parallel mode
-     *
-     * @see EnsembleModelProcessor#predictions(List, double[])
-     */
     public static double[] predictions(List<Model> ensemble, double[] data) {
         ConcurrentLinkedQueue<Double> predictions = new ConcurrentLinkedQueue<>();
         executor.submit(new ModelEvaluation(0, ensemble.size() - 1, data, predictions, ensemble)).join();

@@ -24,7 +24,7 @@ import java.util.Map;
  * votes across all predictor pairs is chosen as a winner.
  * The obvious problem is that number of pairs is equal to ((n-1) * n) / 2 where n is a number of classes.
  * </p>
- *   n  => n! / (2!(n-2)!) = (n-2)!*(n-1)*(n) / (2*(n-2)!)
+ *   n  {@literal =>} n! / (2!(n-2)!) = (n-2)!*(n-1)*(n) / (2*(n-2)!)
  *   2
  * @author dtemraz
  */

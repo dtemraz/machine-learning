@@ -25,7 +25,7 @@ import java.util.function.BiFunction;
  *   <li> 3.  repeat until samples are correctly classified </li>
  * </ul>
  *
- * where weight adjustment rule => Δ Wk(n) = d * η * x(n)
+ * {@literal where weight adjustment rule => Δ Wk(n) = d * η * x(n)}
  *
  * <ul>
  *  <li> d = correct class for a given input sample:  +1 | -1 </li>

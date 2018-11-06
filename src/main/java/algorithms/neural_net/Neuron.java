@@ -73,7 +73,7 @@ public class Neuron {
     }
 
     /**
-     * Teaches the non_linear.supervised.neuron correct weights to represent input samples defined with </code>samples</code>.
+     * Teaches the non_linear.supervised.neuron correct weights to represent input samples defined with <em>samples</em>.
      * Once this method finishes, user can apply seen or unseen input samples.
      * 
      * @param samples to train the non_linear.supervised.neuron correct weights

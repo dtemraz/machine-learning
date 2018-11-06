@@ -39,7 +39,7 @@ public class StratifiedKFold {
      * </p>
      *
      * <strong>Side-effect</strong> The method will attempt to reduce memory footprint and therefore during execution
-     * will <em>release</en> memory occupied by lists in <em>data</em> map.
+     * will <em>release</em> memory occupied by lists in <em>data</em> map.
      *
      * @param modelSupplier supplies model which is trainable given the training <em>dat</em>
      * @param data to train and evaluate model, split into training set and validation set according to validation ratio

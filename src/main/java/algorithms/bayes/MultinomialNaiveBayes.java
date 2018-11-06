@@ -32,15 +32,12 @@ import java.util.Map;
  * than it's counterpart linear regression model, it approaches this error faster:
  *      <p>https://ai.stanford.edu/~ang/papers/nips01-discriminativegenerative.pdf</p>
  *
- * The algorithm may still perform reasonably for large problems and given it's simplicity it is worth trying before rejecting it
- * as a solution. For large texts classification, TF-IDF metric should be considered instead of words frequency.
- * <p>
- * <strong>Corner cases:</strong>
+ * <p><strong>Corner cases:</strong></p>
  * <ul>
  *  <li>probability of unseen words is handled with Laplace smoothing</li>
  *  <li>numeric underflow is solved with logarithmic sum of probabilities instead of probabilities product</li>
  * </ul>
- * </p>
+ *
  *
  * @author dtemraz
  */

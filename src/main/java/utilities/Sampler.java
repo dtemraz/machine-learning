@@ -28,6 +28,7 @@ public class Sampler {
      *
      * @param dataSet to sample
      * @param ratio   percentage of <em>dataSet</em> size to use as a sample size
+     * @param <T> type of the item in a list
      * @return uniform with replacement sample from <em>dataSet</em> with size equal to <em>ratio</em> of data set size
      */
     public <T> List<T> subset(List<T> dataSet, double ratio) {
