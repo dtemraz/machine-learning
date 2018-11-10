@@ -1,8 +1,8 @@
 package algorithms.ensemble;
 
 import algorithms.ensemble.committee.CommitteeOfExperts;
-import algorithms.ensemble.model.Model;
-import algorithms.ensemble.model.ModelSupplier;
+import algorithms.model.Model;
+import algorithms.model.ModelSupplier;
 import utilities.Sampler;
 
 import java.util.ArrayList;

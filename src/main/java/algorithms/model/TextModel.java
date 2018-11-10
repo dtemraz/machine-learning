@@ -1,4 +1,4 @@
-package algorithms.ensemble.model;
+package algorithms.model;
 
 import java.io.Serializable;
 

@@ -12,7 +12,7 @@ import java.util.StringJoiner;
 import java.util.TreeSet;
 
 /**
- * This class defines a result of a {@link algorithms.ensemble.model.TextModel} evaluation via {@link StratifiedTrainAndTest}
+ * This class defines a result of a {@link algorithms.model.TextModel} evaluation via {@link StratifiedTrainAndTest}
  * and {@link StratifiedKFold}.
  * The class contains following metrics:
  * <ul>

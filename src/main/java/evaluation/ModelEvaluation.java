@@ -1,7 +1,7 @@
 package evaluation;
 
-import algorithms.ensemble.model.TextModel;
-import algorithms.ensemble.model.TextModelSupplier;
+import algorithms.model.TextModel;
+import algorithms.model.TextModelSupplier;
 import evaluation.summary.Summary;
 import evaluation.summary.WronglyClassified;
 
@@ -18,7 +18,7 @@ import java.util.StringJoiner;
  *
  * @author dtemraz
  */
-class ModelEvaluation {
+public class ModelEvaluation {
 
     private static final String LATENT_FEATURE_DELIMITER = "_x_";
 
@@ -27,23 +27,31 @@ class ModelEvaluation {
      * <em>trainingSet</em> and the performance is validated with <em>validationSet</em>.
      *
      * @param modelSupplier to produce trained model, given the <em>trainingSet</em>
-     * @param trainingSet to train the model to evaluate
+     * @param trainingSet   to train the model to evaluate
      * @param validationSet to validate performance of the model
      * @return report of a model evaluation trained with <em>trainingSet</em> and validated with <em>validationSet</em>
      */
-    static Summary execute(TextModelSupplier modelSupplier, Map<Double, List<String[]>> trainingSet, Map<Double, List<String[]>> validationSet) {
+    public static Summary execute(TextModelSupplier modelSupplier, Map<Double, List<String[]>> trainingSet, Map<Double, List<String[]>> validationSet) {
+        return execute(modelSupplier.get(trainingSet), validationSet);
+    }
+
+    /**
+     * Returns {@link Summary} report from evaluation of <em>textModel</em> validated with <em>validationSet</em>.
+     *
+     * @param textModel trained instance that should be validated against <em>validationSet</em>
+     * @param validationSet to validate performance of the model
+     * @return report of a model validated with <em>validationSet</em>
+     */
+    public static Summary execute(TextModel textModel, Map<Double, List<String[]>> validationSet) {
         HashSet<WronglyClassified> wronglyClassified = new HashSet<>();
         // percentage of correct samples over all samples per class
         HashMap<Double, Double> classAccuracy = new HashMap<>();
         // how many times a class was mistaken by another class
         Map<Double, Map<Double, Integer>> confusionMatrix = new HashMap<>();
         // put all expected classes in confusion matrix as keys
-        trainingSet.keySet().forEach((classId) -> confusionMatrix.put(classId, new HashMap<>()));
+        validationSet.keySet().forEach((classId) -> confusionMatrix.put(classId, new HashMap<>()));
         // correct predictions across all classes
         double correct = 0;
-
-        // train the model with the training set extracted from data
-        TextModel model = modelSupplier.get(trainingSet);
 
         for (Map.Entry<Double, List<String[]>> validationSamples : validationSet.entrySet()) {
             int positive = 0; // per class
@@ -52,7 +60,7 @@ class ModelEvaluation {
 
             // iterate all validation samples of a given class
             for (String[] sample : validationSamples.getValue()) {
-                Double predicted = model.classify(sample);
+                Double predicted = textModel.classify(sample);
                 if (predicted == expectedClass) {
                     positive++;
                     correct++;

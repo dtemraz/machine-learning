@@ -139,7 +139,7 @@ public class Vector {
      * @param vector for which to find if of max value component
      * @return value of max component in <em>vector</em>
      */
-    public static int maxComponentId(double[] vector) {
+    public static int  maxComponentId(double[] vector) {
         // standard find max algorithm
         double max = Double.NEGATIVE_INFINITY; // Double.MIN_VALUE is actually positive !!
         int maxIdx = Integer.MIN_VALUE;

@@ -1,6 +1,6 @@
 package algorithms.linear_regression;
 
-import algorithms.ensemble.model.Model;
+import algorithms.model.Model;
 import algorithms.linear_regression.optimization.real_vector.Optimizer;
 import utilities.math.Vector;
 

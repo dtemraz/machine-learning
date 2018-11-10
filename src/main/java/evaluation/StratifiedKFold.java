@@ -1,6 +1,6 @@
 package evaluation;
 
-import algorithms.ensemble.model.TextModelSupplier;
+import algorithms.model.TextModelSupplier;
 import evaluation.summary.Summary;
 import evaluation.summary.SummaryAnalysis;
 import structures.RandomizedQueue;
@@ -15,7 +15,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 /**
- * This class lets user evaluate {@link algorithms.ensemble.model.TextModel} performance with stratified k-fold validation.
+ * This class lets user evaluate {@link algorithms.model.TextModel} performance with stratified k-fold validation.
  * The class returns various evaluation metrics wrapped in {@link Summary}, such as <em>overall accuracy</em>,
  * <em>per class accuracy</em> and <em>confusion matrix</em>.
  *
@@ -31,7 +31,7 @@ import java.util.concurrent.Future;
 public class StratifiedKFold {
 
     /**
-     * Returns {@link Summary} of the {@link algorithms.ensemble.model.TextModel} performance computed with stratified K-fold.
+     * Returns {@link Summary} of the {@link algorithms.model.TextModel} performance computed with stratified K-fold.
      * The summary includes overall accuracy, per class accuracy and confusion matrix.
      * <p>
      * The <em>modelSupplier</em> should return trained model given the training data. The <em>data</em> will be split into
@@ -51,7 +51,7 @@ public class StratifiedKFold {
     }
 
     /**
-     * Returns {@link Summary} of the {@link algorithms.ensemble.model.TextModel} performance computed with stratified K-fold.
+     * Returns {@link Summary} of the {@link algorithms.model.TextModel} performance computed with stratified K-fold.
      * The summary includes overall accuracy, per class accuracy and confusion matrix.
      * <p>
      * The <em>modelSupplier</em> should return trained model given the training data. The <em>data</em> will be split into

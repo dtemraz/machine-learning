@@ -4,7 +4,7 @@ import algorithms.cart.ClassificationTree;
 import algorithms.cart.optimization.CostFunction;
 import algorithms.cart.optimization.RandomFeaturesOptimizer;
 import algorithms.ensemble.committee.CommitteeOfExperts;
-import algorithms.ensemble.model.Model;
+import algorithms.model.Model;
 import utilities.Sampler;
 
 import java.util.ArrayList;

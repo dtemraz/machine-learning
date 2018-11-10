@@ -1,4 +1,4 @@
-package algorithms.ensemble.model;
+package algorithms.model;
 
 /**
  * This interface defines generic model which is able to make predictions, either classification or regression, given data sample.

@@ -1,10 +1,9 @@
 package evaluation;
 
-import algorithms.ensemble.model.TextModel;
-import algorithms.ensemble.model.TextModelSupplier;
+import algorithms.model.TextModel;
+import algorithms.model.TextModelSupplier;
 import evaluation.summary.Summary;
 import evaluation.summary.SummaryAnalysis;
-import lombok.RequiredArgsConstructor;
 import utilities.ListUtils;
 
 import java.util.ArrayList;
@@ -13,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This class lets user evaluate {@link TextModel} and {@link algorithms.ensemble.model.Model} implementations via train
+ * This class lets user evaluate {@link TextModel} and {@link algorithms.model.Model} implementations via train
  * and test strategy. The class returns various evaluation metrics wrapped in {@link Summary}, such as <em>overall accuracy</em>,
  * <em>per class accuracy</em> and <em>confusion matrix</em>.
  * User is able to specify number of iterations over which train and test will be averaged and validation ratio that shall
@@ -59,30 +58,26 @@ public class StratifiedTrainAndTest {
         return SummaryAnalysis.average(summaries);
     }
 
-    // returns data sampled into training set and validation set, for all classes validation ratio samples is reserved for validation
-    private static TrainAndTestSplit<String[]> split(Map<Double, List<String[]>> data, double validationRatio) {
-        HashMap<Double, List<String[]>> trainingSamples = new HashMap<>();
-        HashMap<Double, List<String[]>> validationSamples = new HashMap<>();
+
+    /**
+     * Returns data sampled into training set and validation set, stratified distribution is maintained for each class in validation samples.
+     *
+     * @param data to split
+     * @param validationRatio ratio of samples to reserve for validation
+     * @param <T> type of data
+     * @return data sampled into training set and validation set, stratified distribution is maintained for each class in validation samples
+     */
+    public static <T> TrainAndTestSplit<T> split(Map<Double, List<T>> data, double validationRatio) {
+        HashMap<Double, List<T>> trainingSamples = new HashMap<>();
+        HashMap<Double, List<T>> validationSamples = new HashMap<>();
         // iterate over samples for each class and split them into training set and validation set
-        for (Map.Entry<Double, List<String[]>> entry : data.entrySet()) {
-            List<List<String[]>> split = ListUtils.randomizedSplit(entry.getValue(), (1 - validationRatio));
+        for (Map.Entry<Double, List<T>> entry : data.entrySet()) {
+            List<List<T>> split = ListUtils.randomizedSplit(entry.getValue(), (1 - validationRatio));
             Double expectedClass = entry.getKey();
             trainingSamples.put(expectedClass, split.get(0));
             validationSamples.put(expectedClass, split.get(1));
         }
-
         return new TrainAndTestSplit<>(trainingSamples, validationSamples);
-    }
-
-    /**
-     * Simple wrapper class used to contain both the training set and validation set across all classes.
-     *
-     * @param <T> type of data in the sets
-     */
-    @RequiredArgsConstructor
-    private static class TrainAndTestSplit<T> {
-        private final HashMap<Double, List<T>> trainingSet;
-        private final HashMap<Double, List<T>> validationSet;
     }
 
 }

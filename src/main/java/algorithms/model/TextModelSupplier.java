@@ -1,4 +1,4 @@
-package algorithms.ensemble.model;
+package algorithms.model;
 
 import java.util.List;
 import java.util.Map;

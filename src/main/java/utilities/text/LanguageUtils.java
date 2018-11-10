@@ -95,4 +95,19 @@ public class LanguageUtils {
         return false;
     }
 
+    /**
+     * Returns true if the <em>text</em> contains character(s) in arabic unicode range, false otherwise.
+     *
+     * @param  text to check if contains arabic unicode characters
+     * @return true if the text contains character(s) in arabic unicode range, false otherwise
+     */
+    public static boolean hasArabicCharacters(String text) {
+        for (char c : text.toCharArray()) {
+            if (Character.UnicodeBlock.of(c) == Character.UnicodeBlock.ARABIC) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }

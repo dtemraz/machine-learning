@@ -1,6 +1,6 @@
 package algorithms.bayes;
 
-import algorithms.ensemble.model.TextModel;
+import algorithms.model.TextModel;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -148,7 +148,7 @@ public class MultinomialNaiveBayes implements TextModel, Serializable {
     }
 
     /*
-     Classification
+     ClassificationResult
      -------------------------------------------------------------------------------
      */
 

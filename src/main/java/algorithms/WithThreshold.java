@@ -1,7 +1,7 @@
 package algorithms;
 
-import algorithms.ensemble.model.Model;
-import algorithms.ensemble.model.TextModel;
+import algorithms.model.Model;
+import algorithms.model.TextModel;
 
 import java.io.Serializable;
 

@@ -1,7 +1,9 @@
 package algorithms.linear_regression;
 
-import algorithms.ensemble.model.TextModel;
+import algorithms.model.ClassificationResult;
+import algorithms.model.TextModel;
 import algorithms.linear_regression.optimization.text.MultiClassTextOptimizer;
+import algorithms.model.TextModelWithProbability;
 import algorithms.neural_net.StableSoftMaxActivation;
 import structures.text.TF_IDF_Term;
 import structures.text.TF_IDF_Vectorizer;
@@ -24,7 +26,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @author dtemraz
  */
-public class SoftMaxRegression implements TextModel {
+public class SoftMaxRegression implements TextModelWithProbability {
 
     private final Vocabulary vocabulary; // indexed words and their IDF values
     private final Map<Double, double[]> theta = new HashMap<>(); // coefficients for each class
@@ -40,7 +42,7 @@ public class SoftMaxRegression implements TextModel {
      * @param softMaxOptimizer instance to train classifier for textual classification
      * @return {@link TextModel} instance which can be used to classify text into multiple classes
      */
-    public static TextModel getTextModel(Vocabulary vocabulary, Map<Double, List<String[]>> trainingSet, MultiClassTextOptimizer softMaxOptimizer) {
+    public static TextModelWithProbability getTextModel(Vocabulary vocabulary, Map<Double, List<String[]>> trainingSet, MultiClassTextOptimizer softMaxOptimizer) {
         return new SoftMaxRegression(vocabulary, trainingSet, softMaxOptimizer);
     }
 
@@ -55,11 +57,16 @@ public class SoftMaxRegression implements TextModel {
 
     @Override
     public double classify(String[] words) {
+        return maxProbabilityClass(words).getClassId();
+    }
+
+    @Override
+    public ClassificationResult classifyWithProb(String[] words) {
         return maxProbabilityClass(words);
     }
 
     // calculates dot product of words tf-idf and theta coefficients for associated words
-    private double maxProbabilityClass(String[] words) {
+    private ClassificationResult maxProbabilityClass(String[] words) {
         double[] weightedInput = new double[classes.length];
         TF_IDF_Term[] tf_idf_terms = TF_IDF_Vectorizer.tfIdf(words, vocabulary);
         // calculate weighted input X*(W)T for each class
@@ -73,8 +80,10 @@ public class SoftMaxRegression implements TextModel {
             // weighted input for each class in classes array, ordering is same between these arrays
             weightedInput[classId] = sum + bias.get(clazz);
         }
+        double[] activations = StableSoftMaxActivation.apply(weightedInput);
+        int maxComponentId = Vector.maxComponentId(activations);
         // selects class with highest SoftMax score given the weighted input
-        return classes[Vector.maxComponentId(StableSoftMaxActivation.apply(weightedInput))];
+        return new ClassificationResult(classes[maxComponentId], activations[maxComponentId]);
     }
 
     // optimizes class coefficients for SoftMax classification

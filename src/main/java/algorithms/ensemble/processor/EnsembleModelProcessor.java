@@ -1,6 +1,6 @@
-package algorithms.ensemble.model.processor;
+package algorithms.ensemble.processor;
 
-import algorithms.ensemble.model.Model;
+import algorithms.model.Model;
 
 import java.util.List;
 

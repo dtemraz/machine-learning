@@ -1,7 +1,7 @@
 package examples.sms_spam;
 
 import algorithms.WithThreshold;
-import algorithms.ensemble.model.TextModel;
+import algorithms.model.TextModel;
 import algorithms.linear_regression.LogisticRegression;
 import algorithms.linear_regression.optimization.text.MultiClassTextOptimizer;
 import algorithms.linear_regression.optimization.text.ParallelSoftMaxOptimizer;

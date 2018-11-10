@@ -1,7 +1,7 @@
 package algorithms.linear_regression;
 
-import algorithms.ensemble.model.Model;
-import algorithms.ensemble.model.TextModel;
+import algorithms.model.Model;
+import algorithms.model.TextModel;
 import algorithms.linear_regression.optimization.real_vector.Optimizer;
 import algorithms.linear_regression.optimization.text.TextOptimizer;
 import structures.text.Vocabulary;

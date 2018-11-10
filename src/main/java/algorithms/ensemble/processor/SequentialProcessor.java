@@ -1,7 +1,7 @@
-package algorithms.ensemble.model.processor;
+package algorithms.ensemble.processor;
 
-import algorithms.ensemble.model.Model;
-import algorithms.ensemble.model.TextModel;
+import algorithms.model.Model;
+import algorithms.model.TextModel;
 
 import java.util.List;
 

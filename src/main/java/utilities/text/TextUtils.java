@@ -13,6 +13,8 @@ public class TextUtils {
 
     // match strings which contain at least 8 digits and only digits, this is to avoid short codes
     private static final Predicate<String> NUMERIC = Pattern.compile("^(\\d){8,}$").asPredicate();
+    // keep only letters, digits, whitespaces and underscores in unicode
+    private static final Pattern LETTERS_AND_DIGITS = Pattern.compile("[^\\w ]|_'", Pattern.UNICODE_CHARACTER_CLASS);
 
     /**
      * Returns true if <em>msisdn</em> is a standard numeric msisdn of at least 8 digits, otherwise false.
@@ -23,21 +25,6 @@ public class TextUtils {
      */
     public static boolean isNumericMsisdn(String msisdn) {
         return NUMERIC.test(msisdn);
-    }
-
-    /**
-     * Returns true if the <em>text</em> contains character(s) in arabic unicode range, false otherwise.
-     *
-     * @param  text to check if contains arabic unicode characters
-     * @return true if the text contains character(s) in arabic unicode range, false otherwise
-     */
-    public static boolean hasArabicCharacters(String text) {
-        for (char c : text.toCharArray()) {
-            if (Character.UnicodeBlock.of(c) == Character.UnicodeBlock.ARABIC) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /**
@@ -88,6 +75,10 @@ public class TextUtils {
 
     public static String removePunctuationsAndNewline(String text) {
         return deleteMatch(text, PUNCTUATIONS_AND_NEWLINE);
+    }
+
+    public static String keepLettersAndDigits(String text) {
+        return deleteMatch(text, LETTERS_AND_DIGITS);
     }
 
     private static String deleteMatch(String text, Pattern pattern) {

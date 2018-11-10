@@ -3,11 +3,11 @@
 
 //package algorithms.ensemble;
 //
-//import algorithms.ensemble.model.Model;
-//import algorithms.ensemble.model.ModelSupplier;
-//import algorithms.ensemble.model.TextModel;
-//import algorithms.ensemble.model.processor.ParallelProcessor;
-//import algorithms.ensemble.model.processor.TextEnsembleModelProcessor;
+//import algorithms.model.Model;
+//import algorithms.model.ModelSupplier;
+//import algorithms.model.TextModel;
+//import algorithms.ensemble.processor.ParallelProcessor;
+//import algorithms.ensemble.processor.TextEnsembleModelProcessor;
 //import structures.text.SparseDenseSample;
 //import structures.text.Vocabulary;
 //import utilities.math.Vector;
