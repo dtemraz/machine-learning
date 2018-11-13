@@ -2,6 +2,7 @@ package algorithms.linear_regression.optimization.text;
 
 import algorithms.neural_net.Activation;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import structures.text.TF_IDF_Term;
 import structures.text.Vocabulary;
 import utilities.math.Vector;
@@ -32,6 +33,7 @@ import java.util.Map;
  * @author dtemraz
  */
 @RequiredArgsConstructor
+@Log4j2
 public class SparseTextGradientDescent {
 
     private final double learningRate; // proportion of gradient by which we take next step
@@ -83,15 +85,15 @@ public class SparseTextGradientDescent {
             }
 
             // keep track of lowest found error, exiting if there is no progress for patience epochs
-            squaredError = Vector.squaredSum(epochError);
+            squaredError = Vector.squaredSum(epochError) / trainingSet.length;
             if (verbose) {
-                System.out.println("epoch: " + epoch + " , squared error: " + squaredError);
+                log.info("epoch: " + epoch + " , squared error: " + squaredError);
             }
             if (stoppingCriteria.test(squaredError)) {
                 break;
             }
         }
-        System.out.println(String.format("converged in: %d epochs, epoch error: %.6f", epoch, squaredError));
+        log.info(String.format("converged in: %d epochs, epoch error: %.6f", epoch, squaredError));
     }
 
     /**
@@ -141,15 +143,15 @@ public class SparseTextGradientDescent {
             }
 
             // keep track of lowest found error, exiting if there is no progress for patience epochs
-            squaredError = Vector.squaredSum(epochError);
+            squaredError = Vector.squaredSum(epochError) / trainingSet.length;
             if (verbose) {
-                System.out.println("epoch: " + epoch + " , squared error: " + squaredError);
+                log.info("epoch: " + epoch + " , squared error: " + squaredError);
             }
             if (stoppingCriteria.test(squaredError)) {
                 break;
             }
         }
-        System.out.println(String.format("converged in: %d epochs, epoch error: %.6f", epoch, squaredError));
+        log.info(String.format("converged in: %d epochs, epoch error: %.6f", epoch, squaredError));
     }
 
 

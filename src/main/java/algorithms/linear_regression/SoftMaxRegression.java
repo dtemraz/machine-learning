@@ -5,6 +5,7 @@ import algorithms.model.TextModel;
 import algorithms.linear_regression.optimization.text.MultiClassTextOptimizer;
 import algorithms.model.TextModelWithProbability;
 import algorithms.neural_net.StableSoftMaxActivation;
+import lombok.extern.log4j.Log4j2;
 import structures.text.TF_IDF_Term;
 import structures.text.TF_IDF_Vectorizer;
 import structures.text.Vocabulary;
@@ -26,6 +27,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @author dtemraz
  */
+@Log4j2
 public class SoftMaxRegression implements TextModelWithProbability {
 
     private final Vocabulary vocabulary; // indexed words and their IDF values
@@ -91,7 +93,7 @@ public class SoftMaxRegression implements TextModelWithProbability {
         long before = System.currentTimeMillis();
         softMaxOptimizer.optimize(trainingSet, classCoefficients);
         long after = System.currentTimeMillis();
-        System.out.println("training time: " + TimeUnit.MILLISECONDS.toSeconds(after - before));
+        log.info("training time: " + TimeUnit.MILLISECONDS.toSeconds(after - before));
     }
 
     // updates state of internal coefficients and bias for each class

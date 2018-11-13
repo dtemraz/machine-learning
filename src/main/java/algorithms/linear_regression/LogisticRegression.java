@@ -5,6 +5,7 @@ import algorithms.model.TextModel;
 import algorithms.neural_net.Activation;
 import algorithms.linear_regression.optimization.real_vector.Optimizer;
 import algorithms.linear_regression.optimization.text.TextOptimizer;
+import lombok.extern.log4j.Log4j2;
 import structures.text.TF_IDF_Term;
 import structures.text.TF_IDF_Vectorizer;
 import structures.text.Vocabulary;
@@ -26,6 +27,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @author dtemraz
  */
+@Log4j2
 public class LogisticRegression implements TextModel, Model, Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -68,7 +70,7 @@ public class LogisticRegression implements TextModel, Model, Serializable {
         long before = System.currentTimeMillis();
         optimizer.optimize(trainingSet, coefficients);
         long after = System.currentTimeMillis();
-        System.out.println("training time: " + TimeUnit.MILLISECONDS.toSeconds(after - before));
+        log.info("training time: " + TimeUnit.MILLISECONDS.toSeconds(after - before));
         // this is inconsistent with gradient descent which stores bias in 0th array position - TODO normalize
         bias = coefficients[coefficients.length - 1];
         theta = Arrays.copyOfRange(coefficients, 0, coefficients.length - 1);
@@ -82,7 +84,7 @@ public class LogisticRegression implements TextModel, Model, Serializable {
         long before = System.currentTimeMillis();
         optimizer.optimize(trainingSamples.input, trainingSamples.expected, coefficients);
         long after = System.currentTimeMillis();
-        System.out.println("training time: " + TimeUnit.MILLISECONDS.toSeconds(after - before));
+        log.info("training time: " + TimeUnit.MILLISECONDS.toSeconds(after - before));
         // this is inconsistent with text gradient descent which stores bias in final array position - TODO normalize
         bias = coefficients[0];
         theta = Arrays.copyOfRange(coefficients, 1, coefficients.length);

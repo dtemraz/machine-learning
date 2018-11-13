@@ -2,6 +2,7 @@ package algorithms.linear_regression.optimization.text;
 
 import algorithms.neural_net.StableSoftMaxActivation;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import structures.text.TF_IDF_Term;
 import structures.text.Vocabulary;
 import utilities.math.Vector;
@@ -20,6 +21,7 @@ import java.util.Map;
  * @author dtemraz
  */
 @RequiredArgsConstructor
+@Log4j2
 public class SoftMaxOptimizer {
 
     private static final double TARGET = 1; // there is only one true class corresponding to a sample
@@ -78,7 +80,7 @@ public class SoftMaxOptimizer {
             }
 
             if (verbose) {
-                printAverageEpochError(epoch, epochError);
+                printAverageEpochError(epoch, trainingSet.length, epochError);
             }
         }
     }
@@ -113,7 +115,7 @@ public class SoftMaxOptimizer {
     }
 
     // prints current epoch and average epoch error across all classes
-    private static void printAverageEpochError(int epoch, double[][] epochError) {
+    private static void printAverageEpochError(int epoch, int samples, double[][] epochError) {
         double totalError = 0;
         int classes = epochError.length;
         // calculate epoch error for each class
@@ -121,7 +123,7 @@ public class SoftMaxOptimizer {
             totalError += Vector.squaredSum(error);
         }
         double averageError = totalError / classes;
-        System.out.println("epoch: " + epoch + " , average error: " + averageError);
+        log.info("epoch: " + epoch + " , average error: " + averageError / samples);
     }
 
 }

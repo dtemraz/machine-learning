@@ -3,6 +3,7 @@ package algorithms.linear_regression.optimization.text;
 import algorithms.neural_net.StableSoftMaxActivation;
 import com.google.common.util.concurrent.AtomicDoubleArray;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import structures.text.TF_IDF_Term;
 import structures.text.Vocabulary;
 import utilities.math.Vector;
@@ -21,11 +22,12 @@ import java.util.concurrent.atomic.DoubleAdder;
  * </p>
  */
 @RequiredArgsConstructor
+@Log4j2
 public class ParallelSoftMaxOptimizer {
 
     private static final double TARGET = 1; // there is only one true class corresponding to a sample
     private static final double OTHER = 0; // all other classes are false and optimizer should be trained to converge activation to 0 for these classes
-    private static final double SHUFFLE_THRESHOLD = 0.1;
+    private static final double SHUFFLE_THRESHOLD = 0.25;
 
     private final double learningRate; // proportion of gradient by which we take next step
     private final int epochs; // maximal number of epochs the algorithm will run
@@ -87,7 +89,7 @@ public class ParallelSoftMaxOptimizer {
                 }
             });
             if (verbose) {
-                printAverageEpochError(epoch, errorAccumulators);
+                printAverageEpochError(epoch, trainingSet.length, errorAccumulators);
             }
         }
 
@@ -156,13 +158,14 @@ public class ParallelSoftMaxOptimizer {
     }
 
     // prints current epoch and average epoch error across all classes
-    private static void printAverageEpochError(int epoch, Map<Double, DoubleAdder> errorAccumulators) {
+    private static void printAverageEpochError(int epoch, int samples, Map<Double, DoubleAdder> errorAccumulators) {
         double totalError = 0;
         for(DoubleAdder accumulator : errorAccumulators.values()) {
             totalError += accumulator.sumThenReset();
         }
         double averageError = totalError / errorAccumulators.size();
-        System.out.println("epoch: " + epoch + " , average error: " + averageError);
+        // normalize error to number of samples
+        log.info("epoch: " + epoch + " , average error: " + averageError / samples);
     }
 
 }

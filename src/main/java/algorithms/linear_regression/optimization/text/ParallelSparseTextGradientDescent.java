@@ -2,6 +2,7 @@ package algorithms.linear_regression.optimization.text;
 
 import algorithms.neural_net.Activation;
 import com.google.common.util.concurrent.AtomicDoubleArray;
+import lombok.extern.log4j.Log4j2;
 import structures.text.TF_IDF_Term;
 import structures.text.Vocabulary;
 import utilities.math.Vector;
@@ -30,9 +31,8 @@ import java.util.concurrent.atomic.DoubleAdder;
  *
  * @author dtemraz
  */
+@Log4j2
 public class ParallelSparseTextGradientDescent {
-
-    private static final double SHUFFLE_THRESHOLD = 0.05;
 
     private final double learningRate; // proportion of gradient by which we take next step
     private final int epochs; // maximal number of epochs the algorithm will run
@@ -89,15 +89,9 @@ public class ParallelSparseTextGradientDescent {
         // accumulator is better choice than atomic long since we need epoch error only once and after all threads have finished
         DoubleAdder errorAccumulator = new DoubleAdder();
         double squaredError = -1; // sum of squared epoch error components, putting it outside for printing purposes
-        Vector.shuffle(trainingSet);
         int epoch;
         for (epoch = 0; epoch < epochs; epoch++) {
-            // shuffling may speed up convergence, however shuffling is a bottleneck since this is sequential implementation, therefore
-            // allow small probability that it randomly occurs. This is okay since (parallel) SGD is already fuzzy.
-            // it's not trivial to implement parallel shuffle which beats sequential one and is uniform at the same time
-            if (Math.random() <= SHUFFLE_THRESHOLD) {
-                Vector.shuffle(trainingSet);
-            }
+            Vector.shuffle(trainingSet);
             // updates coefficients in parallel for each sample in epoch
             Arrays.stream(trainingSet).parallel().forEach(txt -> {
                 double error = getError(concurrentCoefficients, txt);
@@ -105,9 +99,9 @@ public class ParallelSparseTextGradientDescent {
                 errorAccumulator.add(error * error);
             });
             // now that we went through all the samples, we can reduce epoch error to sum of squares
-            squaredError = errorAccumulator.sumThenReset();
+            squaredError = errorAccumulator.sumThenReset() / trainingSet.length;
             if (verbose) {
-                System.out.println("epoch: " + epoch + " , squared error: " + squaredError);
+                log.info("epoch: " + epoch + " , squared error: " + squaredError);
             }
             if (stoppingCriteria.test(squaredError)) {
                 break;
@@ -115,7 +109,7 @@ public class ParallelSparseTextGradientDescent {
         }
         // copy calculated coefficients into original coefficients
         writeBack(concurrentCoefficients, coefficients);
-        System.out.println(String.format("converged in: %d epochs, epoch error: %.6f", epoch, squaredError));
+        log.info(String.format("converged in: %d epochs, epoch error: %.6f", epoch, squaredError));
     }
 
     // calculates error between predicted and expected class

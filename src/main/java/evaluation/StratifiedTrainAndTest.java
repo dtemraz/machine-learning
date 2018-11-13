@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * This class lets user evaluate {@link TextModel} and {@link algorithms.model.Model} implementations via train
@@ -58,6 +59,19 @@ public class StratifiedTrainAndTest {
         return SummaryAnalysis.average(summaries);
     }
 
+    public static Summary runWithIdentifiableSample(TextModelSupplier modelSupplier, Map<Double, List<IdentifiableSample>> completeSet, double validationRatio, int iterations) {
+        if (iterations <= 1) {
+            TrainAndTestSplit<IdentifiableSample> trainAndTestSplit = split(completeSet, validationRatio);
+            return ModelEvaluation.execute(modelSupplier.get(toFeatures(trainAndTestSplit.trainingSet)), trainAndTestSplit.validationSet);
+        }
+        // if there is more than one iteration, average results across them
+        List<Summary> summaries = new ArrayList<>();
+        for (int i = 0; i < iterations; i++) {
+            TrainAndTestSplit<IdentifiableSample> trainAndTestSplit = split(completeSet, validationRatio);
+            summaries.add(ModelEvaluation.execute(modelSupplier.get(toFeatures(trainAndTestSplit.trainingSet)), trainAndTestSplit.validationSet));
+        }
+        return SummaryAnalysis.average(summaries);
+    }
 
     /**
      * Returns data sampled into training set and validation set, stratified distribution is maintained for each class in validation samples.
@@ -78,6 +92,11 @@ public class StratifiedTrainAndTest {
             validationSamples.put(expectedClass, split.get(1));
         }
         return new TrainAndTestSplit<>(trainingSamples, validationSamples);
+    }
+
+    // extracts features from identifiable sample, id is not important for training set
+    private static Map<Double, List<String[]>> toFeatures(Map<Double, List<IdentifiableSample>> dataSet) {
+        return dataSet.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().stream().map(ids -> ids.getFeatures()).collect(Collectors.toList())));
     }
 
 }
