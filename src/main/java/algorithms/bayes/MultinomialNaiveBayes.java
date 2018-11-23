@@ -127,8 +127,12 @@ public class MultinomialNaiveBayes implements TextModel, Serializable {
     private void laplaceSmoothing(HashMap<String, Double> frequencyTable) {
         // sum of words and their frequencies given the frequency table
         int totalWordsInClass = countWords(frequencyTable);
+        // (X + a) / ( N + ad) , a = 1 for Laplace smoothing
         // add one to each frequency in the table and increase probability denominator by number of possible words
-        frequencyTable.forEach((key, value) -> frequencyTable.compute(key, (term, frequency) -> Math.log((frequency + 1) / (totalWordsInClass + possibleWords))));
+        for (Map.Entry<String, Double> entry : frequencyTable.entrySet()) {
+            // transform frequencies into logarithmic scale, logarithm is monotonic function so the relative order between frequencies is preserved
+            entry.setValue(Math.log((entry.getValue() + 1) / (totalWordsInClass + possibleWords)));
+        }
     }
 
     // returns total number of words in a frequency table

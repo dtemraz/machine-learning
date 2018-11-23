@@ -50,9 +50,9 @@ public class TF_IDF_Vectorizer {
                 termFrequencies.merge(term, 1D, (old, n) -> old + n);
             }
         }
-        // convert term occurrences into frequencies
-        for (Term term : termFrequencies.keySet()) {
-            termFrequencies.compute(term, (k, v) -> v / words.length);
+        // convert term counts into frequencies
+        for (Map.Entry<Term, Double> entry : termFrequencies.entrySet()) {
+            entry.setValue(entry.getValue() / words.length);
         }
         return termFrequencies;
     }
