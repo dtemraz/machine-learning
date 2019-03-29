@@ -4,12 +4,11 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.function.Supplier;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * This class tests that vocabulary correctly computes {@link Term} objects with unique indexes and inverse document frequencies.
@@ -68,9 +67,50 @@ public class VocabularyTest {
     public void allWordsShouldBeInVocabulary() {
         // given
         List<String[]> documents = documentsSupplier.get();
+        // when
         Vocabulary vocabulary = new Vocabulary(documents);
         // then
         allWordsInVocabulary(vocabulary, documents);
+    }
+
+    /**
+     * Checks that all words which appear in only one document are removed
+     */
+    @Test
+    public void rareWordsShouldBePruned() {
+        // given
+        List<String[]> documents = documentsSupplier.get();
+        // when
+        Vocabulary vocabulary = new Vocabulary(documents, 2);
+        // then
+        assertPrunedVocabulary(vocabulary, documents.size());
+    }
+
+    /**
+     * Checks that count of documents each word appears in is correct
+     */
+    @Test
+    public void wordPresenceInDocumentsShouldBeCounted() {
+        // given
+        List<String[]> documents = documentsSupplier.get();
+        // when
+        HashMap<String, Double> wordPresences = Vocabulary.countWords(documents);
+        // then
+        assertWordPresences(wordPresences);
+    }
+
+    /**
+     * Checks that all words which appear in only one document are found
+     */
+    @Test
+    public void wordsThatAppearInOneDocumentShouldBeFound() {
+        // given
+        List<String[]> documents = documentsSupplier.get();
+        // when
+        int minDocuments = 2;
+        Set<String> rareWords = Vocabulary.findRareWords(documents, minDocuments);
+        // then all single document words should be found
+        assertTrue(singleDocumentWords().stream().filter(rareWords::contains).count() == singleDocumentWords().size());
     }
 
 
@@ -83,6 +123,39 @@ public class VocabularyTest {
         if (unknownWords > 0) {
             throw new AssertionError(String.format("there are: %d unknown words in vocabulary", unknownWords));
         }
+    }
+
+    private void assertPrunedVocabulary(Vocabulary vocabulary, int documents) {
+        // words: {the life is learning} are present in 2 documents
+        int remainingWords = 4;
+        assertEquals(remainingWords, vocabulary.size());
+        // each term should have unique id and they should be assigned from 0 to size
+        int[] termIds = vocabulary.getTerms().stream().mapToInt(Term::getId).sorted().toArray();
+        for (int id = 0; id < remainingWords; id++) {
+            assertEquals(id, termIds[id]);
+        }
+        // each remaining term appears in exactly two documents
+        double documentsContainingWord = 2;
+        for (Term t : vocabulary.getTerms()) {
+            assertEquals(1 + Math.log(documents / documentsContainingWord), t.idf, delta); // life in 2 out of 3 documents
+        }
+    }
+
+    private void assertWordPresences(HashMap<String, Double> wordPresences) {
+        List<String> singleDocumentWords = singleDocumentWords();
+        List<String> twoDocumentWords = twoDocumentWords();
+        // all words should be accounted for
+        assertEquals(singleDocumentWords.size() + twoDocumentWords.size(), wordPresences.size());
+        singleDocumentWords.forEach(w -> assertEquals(1D, wordPresences.get(w), 0));
+        twoDocumentWords.forEach(w -> assertEquals(2D, wordPresences.get(w), 0));
+    }
+
+    private List<String> singleDocumentWords() {
+        return Arrays.asList("game", "of", "a", "everlasting", "unexamined", "not", "worth", "living", "stop", "Never");
+    }
+
+    private List<String> twoDocumentWords() {
+        return Arrays.asList("The", "life", "is", "learning");
     }
 
 }

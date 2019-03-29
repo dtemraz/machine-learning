@@ -1,25 +1,22 @@
 package algorithms.bayes;
 
 import algorithms.model.TextModel;
+import structures.text.Vocabulary;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * This class implements <em>Multinomial Naive Bayes algorithm</em> with Laplace smoothing for text classification.
  * The algorithm uses Bayesian theorem: P(A|B) = (P(B|A) * P(A)) / P(B) where:
  * <ul>
- *  <li>P(A|B) conditional probability of event A, given event B </li>
- *  <li>P(B|A) conditional probability of event B, given event A</li>
- *  <li>P(A) independent probability of event A</li>
- *  <li>P(B) independent probability of event B</li>
+ * <li>P(A|B) conditional probability of event A, given event B </li>
+ * <li>P(B|A) conditional probability of event B, given event A</li>
+ * <li>P(A) independent probability of event A</li>
+ * <li>P(B) independent probability of event B</li>
  * </ul>
- *
+ * <p>
  * The algorithm is referred to as naive because it assumes there are no dependencies between features which simply doesn't hold
  * for most real world scenarios. For text analysis, it assumes that distribution of a given word doesn't affect distribution(existence)
  * of other words. Regardless, even with this naive assumption algorithm works reasonably well for many real word scenarios.
@@ -30,20 +27,20 @@ import java.util.Map;
  * </p>
  * This algorithm is a solid choice when there are not many samples to learn from. While it may have greater asymptotic error
  * than it's counterpart linear regression model, it approaches this error faster:
- *      <p>https://ai.stanford.edu/~ang/papers/nips01-discriminativegenerative.pdf</p>
+ * <p>https://ai.stanford.edu/~ang/papers/nips01-discriminativegenerative.pdf</p>
  *
  * <p><strong>Corner cases:</strong></p>
  * <ul>
- *  <li>probability of unseen words is handled with Laplace smoothing</li>
- *  <li>numeric underflow is solved with logarithmic sum of probabilities instead of probabilities product</li>
+ * <li>probability of unseen words is handled with Laplace smoothing</li>
+ * <li>numeric underflow is solved with logarithmic sum of probabilities instead of probabilities product</li>
  * </ul>
- *
  *
  * @author dtemraz
  */
 public class MultinomialNaiveBayes implements TextModel, Serializable {
 
     private static final long serialVersionUID = 1L;
+
 
     private static final String WHITESPACES = "\\s+"; // covers multiple whitespaces (tabs, new lines, spaces)
 
@@ -56,14 +53,25 @@ public class MultinomialNaiveBayes implements TextModel, Serializable {
      * @param samples Map containing class id and associated texts to train Multinomial Naive Bayes algorithm
      */
     public MultinomialNaiveBayes(Map<Double, List<String[]>> samples) {
+        this(samples, Vocabulary.NO_PRUNING);
+    }
+
+    /**
+     * Constructs instance of this class trained to classify <em>samples</em> into classes defined with their labels, skipping all the words
+     * in training phase which appear in less than <em>minCount</em> documents.
+     *
+     * @param samples Map containing class id and associated texts to train Multinomial Naive Bayes algorithm
+     */
+    public MultinomialNaiveBayes(Map<Double, List<String[]>> samples, int minCount) {
         if (samples == null) {
             throw new IllegalArgumentException("samples must not be null");
         }
-        classDistributions = train(samples);
+        classDistributions = train(samples, minCount);
         // we need this for laplace smoothing since we are effectively raising count of all possible words(vocabulary) by 1
         possibleWords = uniqueWordsCount();
         // handle unseen words since they would have probability 0 which would cause problems for logarithmic function
         classDistributions.forEach(cd -> laplaceSmoothing(cd.probabilityTable));
+        System.out.println();
     }
 
     /**
@@ -99,27 +107,31 @@ public class MultinomialNaiveBayes implements TextModel, Serializable {
    */
 
     // trains naive algorithms.bayes from the provided samples
-    private List<ClassDistribution> train(Map<Double, List<String[]>> samples) {
+    private List<ClassDistribution> train(Map<Double, List<String[]>> samples, int minCount) {
+        // skip all the words which do not appear in minimal number of documents across all classes
+        Set<String> tooRareWords = Vocabulary.findRareWords(samples.values().stream().flatMap(List::stream).collect(Collectors.toList()), minCount);
         // sums sizes of texts in each sample
-        int totalSamples = samples.values().stream().map(List::size).reduce(Integer::sum).get();
+        int documentsCount = samples.values().stream().map(List::size).reduce(Integer::sum).get();
         // properties of each modeled class
         ArrayList<ClassDistribution> classParameters = new ArrayList<>();
         // learn class properties(distribution) of each class from samples
-        samples.forEach((key, value) -> classParameters.add(getClassDistribution(value, key, totalSamples)));
+        samples.forEach((classId, classSamples) -> classParameters.add(getClassDistribution(classSamples, classId, documentsCount, tooRareWords)));
         return classParameters;
     }
 
     // calculates words distribution parameters for the given textSamples of a class
-    private ClassDistribution getClassDistribution(List<String[]> texts, double classId, int totalSamples) {
-        HashMap<String, Double> frequencyTable = buildFrequencyTable(texts);
-        double classProbability = Math.log((double) texts.size() / totalSamples);
+    private ClassDistribution getClassDistribution(List<String[]> classDocuments, double classId, int documentsCount, Set<String> tooRareWords) {
+        HashMap<String, Double> frequencyTable = buildFrequencyTable(classDocuments, tooRareWords);
+        double classProbability = Math.log((double) classDocuments.size() / documentsCount);
         return new ClassDistribution(classId, frequencyTable, classProbability, countWords(frequencyTable));
     }
 
     // builds frequency table of words from the provided list of texts
-    private HashMap<String, Double> buildFrequencyTable(List<String[]> texts) {
-        HashMap<String, Double> frequencyTable = new HashMap<>(); // key = word, value = count
-        texts.stream().flatMap(Arrays::stream).forEach(word -> frequencyTable.merge(word, 1D, (old, n) -> old + n));
+    private HashMap<String, Double> buildFrequencyTable(List<String[]> texts, Set<String> tooRareWords) {
+        HashMap<String, Double> frequencyTable = new HashMap<>();
+        // ignore words which are to rare to have information value and could be considered noise
+        texts.stream().flatMap(Arrays::stream).filter(word -> !tooRareWords.contains(word))
+                 .forEach(word -> frequencyTable.merge(word, 1D, (old, n) -> old + n));
         return frequencyTable;
     }
 
@@ -206,7 +218,7 @@ public class MultinomialNaiveBayes implements TextModel, Serializable {
         private final double classId; // classId used as a result of classification
         private final HashMap<String, Double> probabilityTable; // probability of each word in this class
         private final double classProbability; // probability of the class itself observed from it's share in learning samples
-        private final int wordsCount; // number of all words multiplied by their frequencies in this class
+        private final int wordsCount; // total number of (non-unique)words in a class
 
         private ClassDistribution(double classId, HashMap<String, Double> probabilityTable, double classProbability, int wordsCount) {
             this.classId = classId;
