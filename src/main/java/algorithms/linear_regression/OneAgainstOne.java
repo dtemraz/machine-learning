@@ -1,10 +1,10 @@
 package algorithms.linear_regression;
 
 import algorithms.WithThreshold;
-import algorithms.model.Model;
-import algorithms.model.TextModel;
 import algorithms.linear_regression.optimization.real_vector.Optimizer;
 import algorithms.linear_regression.optimization.text.TextOptimizer;
+import algorithms.model.Model;
+import algorithms.model.TextModel;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;

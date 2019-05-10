@@ -52,7 +52,7 @@ public class Vocabulary implements Serializable {
      * Returns a {@link Set} of words which appear in less than <em>minCount</em> number of <em>documents</em>.
      *
      * @param documents in which to find word that appear less than <em>minCount</em> times.
-     * @param minCount
+     * @param minCount minimal number of documents that should contain a word
      * @return set of words which appear in less than <em>minCount</em> number of <em>documents</em>
      */
     public static Set<String> findRareWords(List<String[]> documents, int minCount) {

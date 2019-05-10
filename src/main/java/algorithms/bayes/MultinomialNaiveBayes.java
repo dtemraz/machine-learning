@@ -61,6 +61,7 @@ public class MultinomialNaiveBayes implements TextModel, Serializable {
      * in training phase which appear in less than <em>minCount</em> documents.
      *
      * @param samples Map containing class id and associated texts to train Multinomial Naive Bayes algorithm
+     * @param minCount minimal number of documents in which a word should appear to be used learning and classification
      */
     public MultinomialNaiveBayes(Map<Double, List<String[]>> samples, int minCount) {
         if (samples == null) {

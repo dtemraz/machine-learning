@@ -1,9 +1,9 @@
 package algorithms.ensemble.committee;
 
-import algorithms.model.Model;
 import algorithms.ensemble.processor.EnsembleModelProcessor;
 import algorithms.ensemble.processor.ParallelProcessor;
 import algorithms.ensemble.processor.SequentialProcessor;
+import algorithms.model.Model;
 
 import java.util.Comparator;
 import java.util.HashMap;

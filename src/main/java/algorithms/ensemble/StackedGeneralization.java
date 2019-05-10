@@ -1,10 +1,10 @@
 package algorithms.ensemble;
 
-import algorithms.model.Model;
-import algorithms.model.ModelSupplier;
 import algorithms.ensemble.processor.EnsembleModelProcessor;
 import algorithms.ensemble.processor.ParallelProcessor;
 import algorithms.ensemble.processor.SequentialProcessor;
+import algorithms.model.Model;
+import algorithms.model.ModelSupplier;
 import utilities.math.Vector;
 
 import java.util.ArrayList;

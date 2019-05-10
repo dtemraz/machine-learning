@@ -1,8 +1,8 @@
 package algorithms.linear_regression;
 
+import algorithms.linear_regression.optimization.text.MultiClassTextOptimizer;
 import algorithms.model.ClassificationResult;
 import algorithms.model.TextModel;
-import algorithms.linear_regression.optimization.text.MultiClassTextOptimizer;
 import algorithms.model.TextModelWithProbability;
 import algorithms.neural_net.StableSoftMaxActivation;
 import lombok.extern.log4j.Log4j2;

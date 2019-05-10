@@ -1,14 +1,14 @@
 package examples.and;
 
-import algorithms.neural_net.learning.samples.LearningSample;
-import algorithms.neural_net.learning.samples.PerceptronSample;
+import algorithms.linear_regression.optimization.real_vector.GradientDescent;
+import algorithms.linear_regression.optimization.real_vector.StoppingCriteria;
+import algorithms.neural_net.Activation;
+import algorithms.neural_net.Neuron;
 import algorithms.neural_net.learning.algorithms.DeltaRuleGradientDescent;
 import algorithms.neural_net.learning.algorithms.DeltaRuleStochasticGradientDescent;
 import algorithms.neural_net.learning.algorithms.Perceptron;
-import algorithms.neural_net.Activation;
-import algorithms.neural_net.Neuron;
-import algorithms.linear_regression.optimization.real_vector.GradientDescent;
-import algorithms.linear_regression.optimization.real_vector.StoppingCriteria;
+import algorithms.neural_net.learning.samples.LearningSample;
+import algorithms.neural_net.learning.samples.PerceptronSample;
 
 import java.util.Arrays;
 import java.util.Collections;

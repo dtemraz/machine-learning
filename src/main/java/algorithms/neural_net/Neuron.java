@@ -1,8 +1,8 @@
 package algorithms.neural_net;
 
-import utilities.math.Vector;
-import algorithms.neural_net.learning.samples.LearningSample;
 import algorithms.neural_net.learning.algorithms.Supervisor;
+import algorithms.neural_net.learning.samples.LearningSample;
+import utilities.math.Vector;
 
 import java.util.List;
 import java.util.function.Function;

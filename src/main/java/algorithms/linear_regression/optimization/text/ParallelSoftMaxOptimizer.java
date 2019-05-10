@@ -27,7 +27,8 @@ public class ParallelSoftMaxOptimizer {
 
     private static final double TARGET = 1; // there is only one true class corresponding to a sample
     private static final double OTHER = 0; // all other classes are false and optimizer should be trained to converge activation to 0 for these classes
-    private static final double SHUFFLE_THRESHOLD = 0.25;
+    private static final double SHUFFLE_THRESHOLD = 0.25; // 25% probability of a shuffle in each epoch
+    private static final double NO_REGULARIZATION = 0; // skip regularization unless specified
 
     private final double learningRate; // proportion of gradient by which we take next step
     private final int epochs; // maximal number of epochs the algorithm will run
@@ -36,7 +37,7 @@ public class ParallelSoftMaxOptimizer {
 
     // by default do not log epoch errors
     public ParallelSoftMaxOptimizer(double learningRate, int epochs) {
-        this(learningRate, epochs, 0, false);
+        this(learningRate, epochs, NO_REGULARIZATION, false);
     }
 
     public ParallelSoftMaxOptimizer(double learningRate, double l2lambda, int epochs) {

@@ -4,13 +4,9 @@ import algorithms.model.TextModel;
 import algorithms.model.TextModelSupplier;
 import evaluation.summary.Summary;
 import evaluation.summary.WronglyClassified;
+import lombok.RequiredArgsConstructor;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.StringJoiner;
+import java.util.*;
 
 /**
  * This class lets the user obtain {@link Summary} report from the evaluation of {@link TextModel}. There is only one method
@@ -28,36 +24,25 @@ public class ModelEvaluation {
      * <em>trainingSet</em> and the performance is validated with <em>validationSet</em>.
      *
      * @param modelSupplier to produce trained model, given the <em>trainingSet</em>
-     * @param trainingSet   to train the model to evaluate
+     * @param trainingSet to train the model to evaluate
      * @param validationSet to validate performance of the model
      * @return report of a model evaluation trained with <em>trainingSet</em> and validated with <em>validationSet</em>
      */
     public static Summary execute(TextModelSupplier modelSupplier, Map<Double, List<String[]>> trainingSet, Map<Double, List<String[]>> validationSet) {
         TextModel textModel = modelSupplier.get(trainingSet);
-        Summary s = prepareSummaryMetrics(validationSet.keySet());
-        // TODO consider to implemented this with method chaining, although additional memory will be required for converted validation set, not ideal if id is not important
-        double correct = 0;
+        Evaluation evaluation = prepareEvaluation(validationSet.keySet());
         for (Map.Entry<Double, List<String[]>> validationSamples : validationSet.entrySet()) {
-            int positive = 0; // per class
-            int negative = 0; // per class
             double expectedClass = validationSamples.getKey();
             // iterate all validation samples of a given class
             for (String[] sample : validationSamples.getValue()) {
-                Double predicted = textModel.classify(sample);
-                if (predicted == expectedClass) {
-                    positive++;
-                    correct++;
-                } else {
-                    negative++;
-                    s.getWronglyClassified().add(new WronglyClassified(expectedClass, predicted, removeLatentFeatures(sample)));
+                double predicted = textModel.classify(sample);
+                if (predicted != expectedClass) {
+                    evaluation.wronglyClassified.add(new WronglyClassified(expectedClass, predicted, removeLatentFeatures(sample)));
                 }
-                s.getConfusionMatrix().get(expectedClass).merge(predicted, 1, (old, n) -> old + n);
+                evaluation.confusionMatrix.get(expectedClass).merge(predicted, 1, Integer::sum);
             }
-            s.getClassAccuracy().put(expectedClass, (positive / (double) (positive + negative)));
         }
-        // ratio of all correctly classified samples divided by a total number of samples
-        double overallAccuracy = correct / (validationSet.entrySet().stream().map((e) -> e.getValue().size()).reduce(Integer::sum)).get();
-        return new Summary(overallAccuracy, s.getClassAccuracy(), s.getConfusionMatrix(), s.getWronglyClassified());
+        return new Summary(evaluation.confusionMatrix, evaluation.wronglyClassified);
     }
 
     /**
@@ -68,43 +53,32 @@ public class ModelEvaluation {
      * @return report of <em>textModel</em> evaluation validated with <em>validationSet</em>
      */
     public static Summary execute(TextModel textModel, Map<Double, List<IdentifiableSample>> validationSet) {
-        Summary s = prepareSummaryMetrics(validationSet.keySet());
-        // correct predictions across all classes
-        double correct = 0;
+        Evaluation evaluation = prepareEvaluation(validationSet.keySet());
         for (Map.Entry<Double, List<IdentifiableSample>> validationSamples : validationSet.entrySet()) {
-            int positive = 0; // per class
-            int negative = 0; // per class
             double expectedClass = validationSamples.getKey();
             // iterate all validation samples of a given class
             for (IdentifiableSample sample : validationSamples.getValue()) {
                 String[] features = sample.getFeatures();
-                Double predicted = textModel.classify(sample.getFeatures());
-                if (predicted == expectedClass) {
-                    positive++;
-                    correct++;
-                } else {
-                    negative++;
-                    s.getWronglyClassified().add(new WronglyClassified(expectedClass, predicted, removeLatentFeatures(features), sample.getId()));
+                double predicted = textModel.classify(sample.getFeatures());
+                if (predicted != expectedClass) {
+                    evaluation.wronglyClassified.add(new WronglyClassified(expectedClass, predicted, removeLatentFeatures(features), sample.getId()));
                 }
-                s.getConfusionMatrix().get(expectedClass).merge(predicted, 1, (old, n) -> old + n);
+                evaluation.confusionMatrix.get(expectedClass).merge(predicted, 1, Integer::sum);
             }
-            s.getClassAccuracy().put(expectedClass, (positive / (double) (positive + negative)));
         }
-        // ratio of all correctly classified samples divided by a total number of samples
-        double overallAccuracy = correct / (validationSet.entrySet().stream().map((e) -> e.getValue().size()).reduce(Integer::sum)).get();
-        return new Summary(overallAccuracy, s.getClassAccuracy(), s.getConfusionMatrix(), s.getWronglyClassified());
+        return new Summary(evaluation.confusionMatrix, evaluation.wronglyClassified);
     }
 
-    private static Summary prepareSummaryMetrics(Set<Double> classes) {
+    // use Summary instance as a holder object for confusion matrix and wrongly classified messages
+    private static Evaluation prepareEvaluation(Set<Double> classes) {
         HashSet<WronglyClassified> wronglyClassified = new HashSet<>();
-        // percentage of correct samples over all samples per class
-        HashMap<Double, Double> classAccuracy = new HashMap<>();
-        // how many times a class was mistaken by another class
         Map<Double, Map<Double, Integer>> confusionMatrix = new HashMap<>();
-        // put all expected classes in confusion matrix as keys
-        classes.forEach((classId) -> confusionMatrix.put(classId, new HashMap<>()));
-        // correct predictions across all classes
-        return new Summary(0, classAccuracy, confusionMatrix, wronglyClassified);
+        classes.forEach((classId) -> {
+            HashMap<Double, Integer> classPredictions = new HashMap<>();
+            classes.forEach(c -> classPredictions.put(c, 0));
+            confusionMatrix.put(classId, classPredictions);
+        });
+        return new Evaluation(confusionMatrix, wronglyClassified);
     }
 
     private static String removeLatentFeatures(String[] features) {
@@ -117,6 +91,13 @@ public class ModelEvaluation {
             joiner.add(feature);
         }
         return joiner.toString();
+    }
+
+    // a tiny wrapper class to hold confusion matrix and a set of wrongly classified messages
+    @RequiredArgsConstructor
+    private static class Evaluation {
+        private final Map<Double, Map<Double, Integer>> confusionMatrix;
+        private final HashSet<WronglyClassified> wronglyClassified;
     }
 
 }

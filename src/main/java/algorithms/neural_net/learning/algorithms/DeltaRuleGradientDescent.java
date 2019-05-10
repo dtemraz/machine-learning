@@ -1,8 +1,8 @@
 package algorithms.neural_net.learning.algorithms;
 
+import algorithms.linear_regression.optimization.real_vector.GradientDescent;
 import algorithms.neural_net.learning.samples.LearningSample;
 import algorithms.neural_net.learning.samples.VectorizedSamples;
-import algorithms.linear_regression.optimization.real_vector.GradientDescent;
 
 import java.util.List;
 import java.util.function.BiFunction;

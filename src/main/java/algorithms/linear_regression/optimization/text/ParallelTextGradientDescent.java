@@ -25,14 +25,14 @@ import java.util.concurrent.atomic.DoubleAdder;
  * of features concurrently. Due to sparsity, contention and mixed state updates should be reduced to very rare events.
  *
  * The algorithm should offer measurable performance lift when there are more than 10_000 samples and in those scenarios
- * should be preferred to {@link algorithms.linear_regression.optimization.text.SparseTextGradientDescent#stochastic(Map, double[], Vocabulary)} optimization.
+ * should be preferred to {@link TextGradientDescent#stochastic(Map, double[], Vocabulary)} optimization.
  *
  * @see <a href="https://arxiv.org/pdf/1106.5730.pdf">hogwild</a>
  *
  * @author dtemraz
  */
 @Log4j2
-public class ParallelSparseTextGradientDescent {
+public class ParallelTextGradientDescent {
 
     private final double learningRate; // proportion of gradient by which we take next step
     private final int epochs; // maximal number of epochs the algorithm will run
@@ -48,7 +48,7 @@ public class ParallelSparseTextGradientDescent {
      * @param epochs number of epochs algorithm will run at most
      * @param stoppingCriteria early termination criteria for the sum of squared epoch error components
      */
-    public ParallelSparseTextGradientDescent(double learningRate, int epochs, SquaredErrorStoppingCriteria stoppingCriteria) {
+    public ParallelTextGradientDescent(double learningRate, int epochs, SquaredErrorStoppingCriteria stoppingCriteria) {
         this(learningRate, epochs, stoppingCriteria, 0, false);
     }
 
@@ -62,7 +62,7 @@ public class ParallelSparseTextGradientDescent {
      * @param lambda regularization penalty
      * @param verbose logs epoch number and squared error in epoch
      */
-    public ParallelSparseTextGradientDescent(double learningRate, int epochs, SquaredErrorStoppingCriteria stoppingCriteria, double lambda, boolean verbose) {
+    public ParallelTextGradientDescent(double learningRate, int epochs, SquaredErrorStoppingCriteria stoppingCriteria, double lambda, boolean verbose) {
         this.learningRate = learningRate;
         this.epochs = epochs;
         this.stoppingCriteria = stoppingCriteria;

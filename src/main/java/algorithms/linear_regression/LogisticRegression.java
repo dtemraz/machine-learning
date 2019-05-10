@@ -1,10 +1,10 @@
 package algorithms.linear_regression;
 
+import algorithms.linear_regression.optimization.real_vector.Optimizer;
+import algorithms.linear_regression.optimization.text.TextOptimizer;
 import algorithms.model.Model;
 import algorithms.model.TextModel;
 import algorithms.neural_net.Activation;
-import algorithms.linear_regression.optimization.real_vector.Optimizer;
-import algorithms.linear_regression.optimization.text.TextOptimizer;
 import lombok.extern.log4j.Log4j2;
 import structures.text.TF_IDF_Term;
 import structures.text.TF_IDF_Vectorizer;

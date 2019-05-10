@@ -1,68 +1,16 @@
 package examples.sms_spam;
 
 import algorithms.WithThreshold;
-import algorithms.model.TextModel;
 import algorithms.linear_regression.LogisticRegression;
-import algorithms.linear_regression.optimization.text.MultiClassTextOptimizer;
-import algorithms.linear_regression.optimization.text.ParallelSoftMaxOptimizer;
-import algorithms.linear_regression.optimization.text.ParallelSparseTextGradientDescent;
-import algorithms.linear_regression.optimization.text.SoftMaxOptimizer;
-import algorithms.linear_regression.optimization.text.SparseTextGradientDescent;
-import algorithms.linear_regression.optimization.text.SquaredErrorStoppingCriteria;
-import algorithms.linear_regression.optimization.text.TextOptimizer;
+import algorithms.linear_regression.optimization.text.*;
+import algorithms.model.TextModel;
 import structures.text.Vocabulary;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Sample results
- * overall accuracy : 0.9843566726511068
- * spams caught: 0.9278571428571426
- * hams blocked: 0.006897028334485141
- *
- * converged in 8000 epochs
- overall accuracy : 0.9898264512268103
- spams caught: 0.9508928571428571
- hams blocked: 0.00414651002073255
- * TODO ugly refactor
- *
- *
- * converged in 4000 epochs
- epoch error: 0.0033088543932023925
- overall accuracy : 0.9850388988629563
- spams caught: 0.9330357142857143
- hams blocked: 0.006910850034554251
-
- converged in 8000 epochs
- epoch error: 0.017816653540436343
- overall accuracy : 0.9922202274087373
- spams caught: 0.9508928571428571
- hams blocked: 0.00138217000691085
-
- converged in 12000 epochs
- best epoch error: 1.7032234270907254
- overall accuracy : 0.9910233393177738
- spams caught: 0.9508928571428571
- hams blocked: 0.0027643400138217
-
- converged in: 24000 epochs, best error score: 0,00
- training time: 48
- overall accuracy : 0.9886295631358468
- spams caught: 0.9241071428571429
- hams blocked: 0.00138217000691085
-
- converged in: 24000 epochs, best error score: 0,00
- training time seconds: 50
- overall accuracy : 0.9940155595451825
- spams caught: 0.9598214285714286
- hams blocked: 6.91085003455425E-4
  *
  * @author dtemraz
  */
@@ -92,11 +40,11 @@ public class TestSmsSpam {
             combined.addAll(smsCorpus.get(1D));
             Vocabulary v = new Vocabulary(combined);
 
-            SquaredErrorStoppingCriteria stoppingCriteria = SquaredErrorStoppingCriteria.squaredErrorBellowTolerance(0.5);
+            SquaredErrorStoppingCriteria stoppingCriteria = SquaredErrorStoppingCriteria.squaredErrorBellowTolerance(0.004);
 
-            TextOptimizer sgd = (x, w) -> new SparseTextGradientDescent(0.0003, 10_000, stoppingCriteria, 0, true).stochastic(x, w, v);
-            TextOptimizer optimizerBatch = (x, w) -> new SparseTextGradientDescent(0.003, 10_000, stoppingCriteria, 0.1, true).miniBatch(x, w, 120, v);
-            TextOptimizer hogwild = (x, w) -> new ParallelSparseTextGradientDescent(0.0003, 10_000, stoppingCriteria, 0, true).stochastic(x, w, v);
+            TextOptimizer sgd = (x, w) -> new TextGradientDescent(0.0003, 10_000, stoppingCriteria, 0, true).stochastic(x, w, v);
+            TextOptimizer optimizerBatch = (x, w) -> new TextGradientDescent(0.003, 10_000, stoppingCriteria, 0.1, true).miniBatch(x, w, 120, v);
+            TextOptimizer hogwild = (x, w) -> new ParallelTextGradientDescent(0.0003, 10_000, stoppingCriteria, 0, true).stochastic(x, w, v);
             MultiClassTextOptimizer softMax = (x, w) -> new SoftMaxOptimizer(0.0003, 10_000, 0, true).stochastic(x, w, v);
             MultiClassTextOptimizer parallelSoftMax = (x, w) -> new ParallelSoftMaxOptimizer(0.0003, 10_000, 0, true).stochastic(x, w, v);
 

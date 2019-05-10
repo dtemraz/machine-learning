@@ -5,11 +5,7 @@ import algorithms.cart.optimization.FullScanOptimizer;
 import algorithms.cart.optimization.Split;
 import algorithms.cart.optimization.SplittingOptimizer;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * This class implements C of CART, a classification tree. This is an example of low bias, high variance classifier whose

@@ -23,7 +23,7 @@ import java.util.Map;
  * and either of these methods can be used to satisfy {@link TextOptimizer#optimize(Map, double[])} method via functional invocation.
  *
  * <p>
- * For example: <strong>{@literal TextOptimizer optimizer = (x, w) -> new SparseTextGradientDescent(0.0003, 40_000, 200).stochastic(x, w, v)}</strong>.
+ * For example: <strong>{@literal TextOptimizer optimizer = (x, w) -> new TextGradientDescent(0.0003, 40_000, 200).stochastic(x, w, v)}</strong>.
  * </p>
  *
  * Text classification assumes very large number of features(words) and therefore operations on vectors of such dimensions are
@@ -34,7 +34,7 @@ import java.util.Map;
  */
 @RequiredArgsConstructor
 @Log4j2
-public class SparseTextGradientDescent {
+public class TextGradientDescent {
 
     private final double learningRate; // proportion of gradient by which we take next step
     private final int epochs; // maximal number of epochs the algorithm will run
@@ -50,7 +50,7 @@ public class SparseTextGradientDescent {
      * @param epochs number of epochs algorithm will run at most
      * @param stoppingCriteria early termination criteria for the sum of squared epoch error components
      */
-    public SparseTextGradientDescent(double learningRate, int epochs, SquaredErrorStoppingCriteria stoppingCriteria) {
+    public TextGradientDescent(double learningRate, int epochs, SquaredErrorStoppingCriteria stoppingCriteria) {
         this(learningRate, epochs, stoppingCriteria, 0, false);
     }
 
