@@ -88,7 +88,7 @@
 //            for (int sample = 0; sample < sparse.size(); sample++) {
 //                double[] level0Predictions = processor.predictions(models, sparse.get(sample));
 //                // construct rows which contain predictions for sparse data and the target class
-//                double[] predictionsWithClass = Vector.merge(level0Predictions, sparseDenseSample.getClassId());
+//                double[] predictionsWithClass = Vector.merge(level0Predictions, sparseDenseSample.getPredictedClass());
 //                // vectorize dense features with the respective vocabulary
 //                // this won't work, need refactor
 ////                double[] denseFeatures = TF_IDF_Vectorizer.vectorize(dense.get(sample), vocabulary);

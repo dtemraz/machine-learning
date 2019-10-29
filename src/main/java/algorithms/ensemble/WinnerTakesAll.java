@@ -20,7 +20,6 @@ public class WinnerTakesAll implements TextModel {
     private final TextModelWithProbability[] textModels; // independent models which can output confidence score with their classification
 
     public WinnerTakesAll(List<TextModelWithProbability> textModels) {
-        // array iterator is ˇ~30% cheaper than the list iterator
         this.textModels = new TextModelWithProbability[textModels.size()];
         for (int model = 0; model < textModels.size(); model++) {
             this.textModels[model] = textModels.get(model);
@@ -37,7 +36,7 @@ public class WinnerTakesAll implements TextModel {
             double probability = classificationResult.getProbability();
             if (probability > maxProb) {
                 maxProb = probability;
-                classId = classificationResult.getClassId();
+                classId = classificationResult.getPredictedClass();
             }
         }
         return classId;

@@ -6,6 +6,7 @@ import org.junit.Test;
 
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -28,6 +29,26 @@ public class VocabularyTest {
     @After
     public void tearDown() {
         documentsSupplier = null;
+    }
+
+
+    /**
+     * This tests checks that vocabulary stores unique words from a set of documents and correctly returns information
+     * that it contains the words.
+     */
+    @Test
+    public void vocabularyShouldContainAllWords() {
+        // given
+        List<String[]> documents = documentsSupplier.get();
+        // when
+        Vocabulary vocabulary = new Vocabulary(documents);
+
+        // then all words from documents should be in vocabulary
+        documents.forEach(document -> Arrays.stream(document).forEach(word -> assertTrue(vocabulary.contains(word))));
+
+        int uniqueWords = documents.stream().flatMap(Arrays::stream).collect(Collectors.toSet()).size();
+        // there should be no other words in vocabulary
+        assertEquals(uniqueWords, vocabulary.size());
     }
 
     /**

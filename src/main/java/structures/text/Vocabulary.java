@@ -71,6 +71,16 @@ public class Vocabulary implements Serializable {
     }
 
     /**
+     * Returns <em>true</em> if <em>word</em> is present in vocabulary, <em>false</em> otherwise.
+     *
+     * @param word to check if it is present in vocabulary
+     * @return <em>true</em> if <em>word</em> is present in vocabulary, <em>false</em> otherwise
+     */
+    public boolean contains(String word) {
+        return terms.containsKey(word);
+    }
+
+    /**
      * Returns {@link Term} with component index and IDF value for this word, or null if this is unseen word.
      *
      * @param word for which to return component index and IDF

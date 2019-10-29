@@ -1,6 +1,7 @@
 package algorithms.bayes;
 
 import algorithms.model.TextModel;
+import lombok.ToString;
 import structures.text.Vocabulary;
 
 import java.io.Serializable;
@@ -11,10 +12,10 @@ import java.util.stream.Collectors;
  * This class implements <em>Multinomial Naive Bayes algorithm</em> with Laplace smoothing for text classification.
  * The algorithm uses Bayesian theorem: P(A|B) = (P(B|A) * P(A)) / P(B) where:
  * <ul>
- * <li>P(A|B) conditional probability of event A, given event B </li>
- * <li>P(B|A) conditional probability of event B, given event A</li>
- * <li>P(A) independent probability of event A</li>
- * <li>P(B) independent probability of event B</li>
+ * <li>P(A|B) posterior: conditional probability of event A, given event B </li>
+ * <li>P(B|A) likelihood: conditional probability of event B, given event A</li>
+ * <li>P(A) prior: independent probability of event A</li>
+ * <li>P(B) evidence: independent probability of event B</li>
  * </ul>
  * <p>
  * The algorithm is referred to as naive because it assumes there are no dependencies between features which simply doesn't hold
@@ -26,7 +27,7 @@ import java.util.stream.Collectors;
  * The user may get most probable class classId for a text via method {@link #classify(String)} once constructor finishes.
  * </p>
  * This algorithm is a solid choice when there are not many samples to learn from. While it may have greater asymptotic error
- * than it's counterpart linear regression model, it approaches this error faster:
+ * than it's counterpart linear regression model, it approaches the error faster:
  * <p>https://ai.stanford.edu/~ang/papers/nips01-discriminativegenerative.pdf</p>
  *
  * <p><strong>Corner cases:</strong></p>
@@ -41,11 +42,9 @@ public class MultinomialNaiveBayes implements TextModel, Serializable {
 
     private static final long serialVersionUID = 1L;
 
-
     private static final String WHITESPACES = "\\s+"; // covers multiple whitespaces (tabs, new lines, spaces)
 
     private final List<ClassDistribution> classDistributions; // properties of each class defined with constructor samples
-    private final int possibleWords; // count of unique set of possible words from all classes
 
     /**
      * Constructs instance of this class trained to classify <em>samples</em> into classes defined with their labels.
@@ -60,7 +59,7 @@ public class MultinomialNaiveBayes implements TextModel, Serializable {
      * Constructs instance of this class trained to classify <em>samples</em> into classes defined with their labels, skipping all the words
      * in training phase which appear in less than <em>minCount</em> documents.
      *
-     * @param samples Map containing class id and associated texts to train Multinomial Naive Bayes algorithm
+     * @param samples  Map containing class id and associated texts to train Multinomial Naive Bayes algorithm
      * @param minCount minimal number of documents in which a word should appear to be used learning and classification
      */
     public MultinomialNaiveBayes(Map<Double, List<String[]>> samples, int minCount) {
@@ -68,16 +67,11 @@ public class MultinomialNaiveBayes implements TextModel, Serializable {
             throw new IllegalArgumentException("samples must not be null");
         }
         classDistributions = train(samples, minCount);
-        // we need this for laplace smoothing since we are effectively raising count of all possible words(vocabulary) by 1
-        possibleWords = uniqueWordsCount();
-        // handle unseen words since they would have probability 0 which would cause problems for logarithmic function
-        classDistributions.forEach(cd -> laplaceSmoothing(cd.probabilityTable));
-        System.out.println();
     }
 
     /**
-     * Returns the most likely class classId for this text according to Bayesian theorem. Text will be split into words
-     * with {@link #WHITESPACES} expression.
+     * Returns the class with maximal posterior probability for this text. Text will be split into words with
+     * {@link #WHITESPACES} expression.
      *
      * @param text to classify into one of the labels supplied via constructor
      * @return most probable class classId for this text
@@ -90,61 +84,78 @@ public class MultinomialNaiveBayes implements TextModel, Serializable {
     }
 
     /**
-     * Returns the most likely class classId for these words according to Bayesian theorem.
+     * Returns the class with maximal posterior probability for this text.
      *
      * @param words to classify into one of the labels supplied via constructor
      * @return most probable class classId for this text
      */
+    @Override
     public double classify(String[] words) {
         if (words == null || words.length == 0) {
             throw new IllegalArgumentException("words must not be null or empty");
         }
-        return maxLikelihoodClass(words);
+        return maxPosteriorClass(words);
     }
 
     /*
-    Learning
-    -------------------------------------------------------------------------------
-   */
+     LEARNING
+     -------------------------------------------------------------------------------
+    */
 
     // trains naive algorithms.bayes from the provided samples
     private List<ClassDistribution> train(Map<Double, List<String[]>> samples, int minCount) {
         // skip all the words which do not appear in minimal number of documents across all classes
         Set<String> tooRareWords = Vocabulary.findRareWords(samples.values().stream().flatMap(List::stream).collect(Collectors.toList()), minCount);
-        // sums sizes of texts in each sample
-        int documentsCount = samples.values().stream().map(List::size).reduce(Integer::sum).get();
-        // properties of each modeled class
-        ArrayList<ClassDistribution> classParameters = new ArrayList<>();
-        // learn class properties(distribution) of each class from samples
-        samples.forEach((classId, classSamples) -> classParameters.add(getClassDistribution(classSamples, classId, documentsCount, tooRareWords)));
-        return classParameters;
+
+        int documentsCount = samples.values().stream().map(List::size).reduce(0, Integer::sum);
+
+        Set<Double> classIds = samples.keySet();
+        Map<Double, HashMap<String, Double>> frequencyTables = new HashMap<>();
+        for (Double classId : classIds) {
+            frequencyTables.put(classId, buildFrequencyTable(samples.get(classId), tooRareWords));
+        }
+
+        // count of unique words across all classes
+        Set<String> uniqueWords = new HashSet<>();
+        frequencyTables.values().forEach(t -> uniqueWords.addAll(t.keySet()));
+        int allUniqueWords = uniqueWords.size();
+
+        ArrayList<ClassDistribution> distributions = new ArrayList<>();
+        for (Double classId : classIds) {
+            List<String[]> classSamples = samples.get(classId);
+            distributions.add(computeClassDistribution(classId, classSamples, frequencyTables.get(classId), documentsCount, allUniqueWords));
+        }
+
+        distributions.forEach(cd -> laplaceSmoothing(cd.probabilityTable, allUniqueWords));
+        return distributions;
     }
 
-    // calculates words distribution parameters for the given textSamples of a class
-    private ClassDistribution getClassDistribution(List<String[]> classDocuments, double classId, int documentsCount, Set<String> tooRareWords) {
-        HashMap<String, Double> frequencyTable = buildFrequencyTable(classDocuments, tooRareWords);
-        double classProbability = Math.log((double) classDocuments.size() / documentsCount);
-        return new ClassDistribution(classId, frequencyTable, classProbability, countWords(frequencyTable));
+
+    private ClassDistribution computeClassDistribution(Double classId, List<String[]> classSamples, HashMap<String, Double> ft, int documentsCount, int allUniqueWords) {
+        double classProbability = Math.log((double) classSamples.size() / documentsCount);
+        int wordsInClass = countWords(ft);
+        double unseenWordProbability = Math.log((1 / (double) (wordsInClass + allUniqueWords)));
+        return new ClassDistribution(classId, ft, classProbability, wordsInClass, unseenWordProbability);
     }
 
     // builds frequency table of words from the provided list of texts
     private HashMap<String, Double> buildFrequencyTable(List<String[]> texts, Set<String> tooRareWords) {
         HashMap<String, Double> frequencyTable = new HashMap<>();
-        // ignore words which are to rare to have information value and could be considered noise
+        // ignore words which are to rare and have no information value
         texts.stream().flatMap(Arrays::stream).filter(word -> !tooRareWords.contains(word))
-                 .forEach(word -> frequencyTable.merge(word, 1D, (old, n) -> old + n));
+                .forEach(word -> frequencyTable.merge(word, 1D, (old, n) -> old + n));
         return frequencyTable;
     }
 
     // solves problem of missing words probability and numeric underflow with logarithmic function
-    private void laplaceSmoothing(HashMap<String, Double> frequencyTable) {
+    private void laplaceSmoothing(HashMap<String, Double> frequencyTable, int allUniqueWords) {
         // sum of words and their frequencies given the frequency table
         int totalWordsInClass = countWords(frequencyTable);
         // (X + a) / ( N + ad) , a = 1 for Laplace smoothing
         // add one to each frequency in the table and increase probability denominator by number of possible words
         for (Map.Entry<String, Double> entry : frequencyTable.entrySet()) {
-            // transform frequencies into logarithmic scale, logarithm is monotonic function so the relative order between frequencies is preserved
-            entry.setValue(Math.log((entry.getValue() + 1) / (totalWordsInClass + possibleWords)));
+            // transform frequencies into logarithmic scale, logarithm is monotonic function so the relative order is preserved
+            entry.setValue(Math.log((entry.getValue() + 1) / (totalWordsInClass + allUniqueWords)));
         }
     }
 
@@ -152,60 +163,43 @@ public class MultinomialNaiveBayes implements TextModel, Serializable {
     private int countWords(HashMap<String, Double> frequencyTable) {
         Double wordsInClass = frequencyTable.entrySet().stream()
                 .mapToDouble(Map.Entry::getValue)
-                .reduce(Double::sum)
-                .getAsDouble();
+                .reduce(0D, Double::sum);
         return wordsInClass.intValue();
     }
 
-    // returns count of unique words given all classes
-    private int uniqueWordsCount() {
-        HashSet<String> uniqueWords = new HashSet<>();
-        classDistributions.forEach(cd -> uniqueWords.addAll(cd.probabilityTable.keySet()));
-        return uniqueWords.size();
-    }
-
     /*
-     ClassificationResult
+     INFERENCE
      -------------------------------------------------------------------------------
      */
 
-    /**
-     * Returns class with the highest probability of containing words in this <em>text</em>.
-     * <p>
-     * There is a hypothesis per each class where we assume that the words belong to a class. Hypothesis(class) with maximal
-     * probability to match the text is chosen as the output class.
-     * </p>
-     *
-     * @param text to classify
-     * @return class id which most likely corresponds to this <em>text</em>
-     */
-    private double maxLikelihoodClass(String[] text) {
+    // returns class which is best explained by the available evidence (text)
+    private double maxPosteriorClass(String[] text) {
         double max = Double.NEGATIVE_INFINITY;
         double label = -1;
         // this is just a standard find max algorithm
         for (ClassDistribution classDistribution : classDistributions) {
-            double probability = classDistribution.classProbability + logSumProbability(text, classDistribution);
-            if (probability > max) {
-                max = probability;
+            // logarithmic scale, prior probability is not accounted for as it is the same for all classes
+            double posterior = classDistribution.prior + likelihood(text, classDistribution);
+            if (posterior > max) {
+                max = posterior;
                 label = classDistribution.classId;
             }
         }
         return label;
     }
 
-    // returns sum of logarithmic probabilities for each word, given class defined with classDistribution as evidence
-    private double logSumProbability(String[] words, ClassDistribution classDistribution) {
+    // returns sum of logarithmic probabilities for each word in a given class
+    private double likelihood(String[] words, ClassDistribution classDistribution) {
         Double conditionalProbability = 0D;
         HashMap<String, Double> probabilityTable = classDistribution.probabilityTable;
-        // calculates conditional probability of a text, word by word, for a given class
+        // calculates conditional probability of each word for a given class
         for (String word : words) {
             Double wordProbability = probabilityTable.get(word);
             // we are using + instead of * since Log(A*B) = Log(A) + Log(B)
             if (wordProbability != null) {
                 conditionalProbability += wordProbability;
             } else {
-                // laplace smoothing for unseen words - add 1 to avoid undefined logarithm in 0, could be cached for each class
-                conditionalProbability += Math.log((1 / (double) (classDistribution.wordsCount + possibleWords)));
+                conditionalProbability += classDistribution.unseenWordsProbability;
             }
         }
         return conditionalProbability;
@@ -215,17 +209,20 @@ public class MultinomialNaiveBayes implements TextModel, Serializable {
      * This class defines probability distribution of words in some user defined class. The algorithm is trained individual
      * class distributions and in operative mode attempts to find the class that fits the text with highest probability.
      */
+    @ToString
     private class ClassDistribution implements Serializable {
         private final double classId; // classId used as a result of classification
         private final HashMap<String, Double> probabilityTable; // probability of each word in this class
-        private final double classProbability; // probability of the class itself observed from it's share in learning samples
+        private final double prior; // probability of the class itself being observed
         private final int wordsCount; // total number of (non-unique)words in a class
+        private final double unseenWordsProbability; // use laplace smoothing for unseen words to avoid logarithm in zero
 
-        private ClassDistribution(double classId, HashMap<String, Double> probabilityTable, double classProbability, int wordsCount) {
+        private ClassDistribution(double classId, HashMap<String, Double> probabilityTable, double prior, int wordsCount, double unseenWordsProbability) {
             this.classId = classId;
             this.probabilityTable = probabilityTable;
-            this.classProbability = classProbability;
+            this.prior = prior;
             this.wordsCount = wordsCount;
+            this.unseenWordsProbability = unseenWordsProbability;
         }
     }
 

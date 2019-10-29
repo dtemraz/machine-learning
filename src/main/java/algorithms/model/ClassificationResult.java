@@ -9,6 +9,7 @@ import lombok.Value;
  */
 @Value
 public class ClassificationResult {
-    private final double classId;
-    private final double probability;
+    private final double predictedClass; // predicted class
+    private final double probability; // probability of highest prediction
+    private final double[] probabilities;
 }

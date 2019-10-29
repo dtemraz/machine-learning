@@ -1,9 +1,13 @@
 package examples.sms_spam;
 
 import algorithms.WithThreshold;
+import algorithms.bayes.MultinomialNaiveBayes;
 import algorithms.linear_regression.LogisticRegression;
+import algorithms.linear_regression.SoftMaxRegression;
 import algorithms.linear_regression.optimization.text.*;
+import algorithms.model.ClassificationResult;
 import algorithms.model.TextModel;
+import algorithms.model.TextModelWithProbability;
 import structures.text.Vocabulary;
 
 import java.io.File;
@@ -57,14 +61,18 @@ public class TestSmsSpam {
 
 //            TextModel textModel = OneAgainstRest.getTextModel(v, smsCorpus, hogwild);
 //            TextModel textModel = LogisticRegression.getTextModel(v, smsCorpus, hogwild);
-            TextModel textModel = WithThreshold.textModel(LogisticRegression.getTextModel(v, smsCorpus, optimizerBatch), 0.5);
-//            TextModel textModel = SoftMaxRegression.getTextModel(v, smsCorpus, parallelSoftMax);
+//            TextModel textModel = WithThreshold.textModel(LogisticRegression.getTextModel(v, smsCorpus, optimizerBatch), 0.5);
+           // TextModel textModel = SoftMaxRegression.getTextModel(v, smsCorpus, parallelSoftMax);
 
-//            MultinomialNaiveBayes textModel = new MultinomialNaiveBayes(smsCorpus);
+           MultinomialNaiveBayes textModel = new MultinomialNaiveBayes(smsCorpus);
+
+//            TextModelWithProbability textModelWithProbabilities = SoftMaxRegression.getTextModelWithProbabilities(v, smsCorpus, parallelSoftMax);
 
             int spamPositive = 0;
             int spamNegative = 0;
             for (String message : dataSet.validationSpam) {
+               // ClassificationResult classificationResult = textModelWithProbabilities.classifyWithProb(message.trim().toLowerCase().split("\\s+"));
+                // System.out.println(classificationResult.getPredictions().values().stream().reduce(0D, Double::sum).doubleValue());
 //                if (oneVSrest.classify(message.trim().toLowerCase().split("\\s+")) == 0D) {
                 if (textModel.classify(message.trim().toLowerCase().split("\\s+")) < 0.5) {
                     spamPositive++;

@@ -2,8 +2,10 @@ package algorithms.linear_regression;
 
 import algorithms.linear_regression.optimization.real_vector.Optimizer;
 import algorithms.linear_regression.optimization.text.TextOptimizer;
+import algorithms.model.ClassificationResult;
 import algorithms.model.Model;
 import algorithms.model.TextModel;
+import algorithms.model.TextModelWithProbability;
 import structures.text.Vocabulary;
 
 import java.util.*;
@@ -21,20 +23,21 @@ import java.util.stream.Collectors;
  *
  * @author dtemraz
  */
-public class OneAgainstRest implements TextModel, Model {
-
-    // instances of logistic regression specialized to classify a single class defined with the key
-    private final HashMap<Double, LogisticRegression> predictors = new HashMap<>();
+public class OneAgainstRest implements TextModelWithProbability, Model {
 
     private static final double TARGET = 1D; // predictors are trained to recognize exactly one class as a true class
     private static final double OTHERS = 0D; // predictors are trained to recognize all other classes as a 'false' class
 
+    // instances of logistic regression specialized to classify a single class defined with the key
+    private final HashMap<Double, LogisticRegression> predictors = new HashMap<>();
+
+
     /**
      * Returns {@link OneAgainstRest} instance which can be used to classify text into multiple classes.
      *
-     * @param vocabulary which defines possible words and their indexes
+     * @param vocabulary  which defines possible words and their indexes
      * @param trainingSet map of classes and messages broken into words per classes
-     * @param optimizer optimizer instance to train classifiers with gradient descent configuration
+     * @param optimizer   optimizer instance to train classifiers with gradient descent configuration
      * @return OneAgainstRest instance which can be used to classify text
      */
     public static TextModel getTextModel(Vocabulary vocabulary, Map<Double, List<String[]>> trainingSet, TextOptimizer optimizer) {
@@ -54,7 +57,7 @@ public class OneAgainstRest implements TextModel, Model {
      * Returns {@link OneAgainstRest} instance which can be used to classify text into multiple classes.
      *
      * @param trainingSet map of classes and messages broken into words per classes
-     * @param optimizer optimizer instance to train classifiers with gradient descent configuration
+     * @param optimizer   optimizer instance to train classifiers with gradient descent configuration
      * @return OneAgainstRest instance which can be used to classify text
      */
     public static Model getModel(List<double[]> trainingSet, Optimizer optimizer) {
@@ -71,19 +74,21 @@ public class OneAgainstRest implements TextModel, Model {
         });
     }
 
-    /**
-     * Returns most probable class for <em>words</em>.
-     *
-     * @param words to classify
-     * @return most probable class for <em>words</em>
-     * @throws IllegalArgumentException if words are null or empty
-     */
     @Override
     public double classify(String[] words) {
         if (words == null || words.length == 0) {
             throw new IllegalArgumentException("words must not be null or empty");
         }
         return maxProbabilityClass(words);
+    }
+
+    @Override
+    public ClassificationResult classifyWithProb(String[] words) {
+        if (words == null || words.length == 0) {
+            throw new IllegalArgumentException("words must not be null or empty");
+        }
+
+        return classProbabilities(words);
     }
 
     /**
@@ -116,11 +121,29 @@ public class OneAgainstRest implements TextModel, Model {
         return targetClass;
     }
 
+    // computes probabilities of each class label, note that sum will not be normalized to 1 unlike with SoftMax regression
+    private ClassificationResult classProbabilities(String[] words) {
+        double max = Double.NEGATIVE_INFINITY;
+        double targetClass = -1;
+        double[] probabilities = new double[predictors.keySet().size()];
+
+        // find max algorithm
+        int label = 0;
+        for (Map.Entry<Double, LogisticRegression> predictor : predictors.entrySet()) {
+            Double prediction = predictor.getValue().classify(words);
+            if (prediction > max) {
+                max = prediction;
+                targetClass = predictor.getKey();
+            }
+            probabilities[label++] = prediction;
+        }
+        return new ClassificationResult(targetClass, max, probabilities);
+    }
+
     // chooses class associated with logistic regression model that outputs highest probability for features
     private double maxProbabilityClass(double[] features) {
         return predictors.entrySet().stream().max(Comparator.comparingDouble(e -> e.getValue().predict(features))).get().getKey();
     }
-
 
 
     // creates logistic regression instance from training set, trained to recognize target class among all others
@@ -146,8 +169,7 @@ public class OneAgainstRest implements TextModel, Model {
         for (double[] sample : samples) {
             if (sample[classIndex] == targetClass) {
                 sample[classIndex] = TARGET;
-            }
-            else {
+            } else {
                 sample[classIndex] = OTHERS;
             }
         }

@@ -5,13 +5,13 @@ import java.io.Serializable;
 /**
  * This class defines unique <em>id</em> for a word with associated <em>inverse document frequency(IDF)</em>. IDF can only be calculated
  * once all documents(messages) have been seen. In order to save some memory IDF initially represents term <em>occurrences</em> and is
- * incrementally updated by te {@link Vocabulary}, hence <em>package</em> access and <em>volatile</em> modifier.
+ * incrementally updated by te {@link Vocabulary}, hence <em>package</em> access and <em>volatile</em> modifier for {@link #idf}.
  *
- * <p> Once all documents are seen the occurrences value is turned into IDF. </p>
+ * <p> Once all documents are seen the occurrences value is turned into IDF within Vocabulary building process. </p>
  *
  * @author dtemraz
  */
-class Term implements Serializable {
+public class Term implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
