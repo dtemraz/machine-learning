@@ -106,31 +106,46 @@ public class MultinomialNaiveBayes implements TextModel, Serializable {
     private List<ClassDistribution> train(Map<Double, List<String[]>> samples, int minCount) {
         // skip all the words which do not appear in minimal number of documents across all classes
         Set<String> tooRareWords = Vocabulary.findRareWords(samples.values().stream().flatMap(List::stream).collect(Collectors.toList()), minCount);
-
         int documentsCount = samples.values().stream().map(List::size).reduce(0, Integer::sum);
-
         Set<Double> classIds = samples.keySet();
+
+        // frequency of words per class
+        Map<Double, HashMap<String, Double>> frequencyTables = buildFrequencyTables(samples, tooRareWords, classIds);
+        // count of unique words across all classes
+        int allUniqueWords = countAllUniqueWords(frequencyTables);
+        // convert probabilities to logarithmic scale and apply laplace smoothing to handle unseen words and underflow
+        ArrayList<ClassDistribution> distributions = getClassDistributions(samples, documentsCount, classIds, frequencyTables, allUniqueWords);
+        distributions.forEach(cd -> laplaceSmoothing(cd.probabilityTable, allUniqueWords));
+        return distributions;
+    }
+
+    // returns frequency of each word in each class given samples
+    private Map<Double, HashMap<String, Double>> buildFrequencyTables(Map<Double, List<String[]>> samples, Set<String> tooRareWords, Set<Double> classIds) {
         Map<Double, HashMap<String, Double>> frequencyTables = new HashMap<>();
         for (Double classId : classIds) {
             frequencyTables.put(classId, buildFrequencyTable(samples.get(classId), tooRareWords));
         }
+        return frequencyTables;
+    }
 
-        // count of unique words across all classes
-        Set<String> uniqueWords = new HashSet<>();
-        frequencyTables.values().forEach(t -> uniqueWords.addAll(t.keySet()));
-        int allUniqueWords = uniqueWords.size();
-
+    // map class distribution to object oriented model for inference
+    private ArrayList<ClassDistribution> getClassDistributions(Map<Double, List<String[]>> samples, int documentsCount, Set<Double> classIds, Map<Double, HashMap<String, Double>> frequencyTables, int allUniqueWords) {
         ArrayList<ClassDistribution> distributions = new ArrayList<>();
         for (Double classId : classIds) {
             List<String[]> classSamples = samples.get(classId);
             distributions.add(computeClassDistribution(classId, classSamples, frequencyTables.get(classId), documentsCount, allUniqueWords));
         }
-
-        distributions.forEach(cd -> laplaceSmoothing(cd.probabilityTable, allUniqueWords));
         return distributions;
     }
 
+    // count how many unique words there are across all documents of all classes
+    private int countAllUniqueWords(Map<Double, HashMap<String, Double>> frequencyTables) {
+        Set<String> uniqueWords = new HashSet<>();
+        frequencyTables.values().forEach(t -> uniqueWords.addAll(t.keySet()));
+        return uniqueWords.size();
+    }
 
+    // wraps each class with its associated probability and words probability distribution
     private ClassDistribution computeClassDistribution(Double classId, List<String[]> classSamples, HashMap<String, Double> ft, int documentsCount, int allUniqueWords) {
         double classProbability = Math.log((double) classSamples.size() / documentsCount);
         int wordsInClass = countWords(ft);
