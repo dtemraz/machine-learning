@@ -26,14 +26,13 @@ public class Cluster {
 
     // using squared euclidean since root operation might end up being bottleneck
     private static final BiFunction<Double[], Double[], Double> squaredEuclidean = (a, b) -> {
-        int length = a.length; // could be either a or b
+        int length = a.length;
         double distance = 0;
-        // this is just euclidean distance
         for (int component = 0; component < length; component++) {
             double delta = a[component] - b[component];
             distance += delta * delta;
         }
-        return distance * distance;
+        return distance;
     };
 
     /**

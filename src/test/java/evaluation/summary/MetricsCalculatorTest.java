@@ -8,8 +8,7 @@ import java.util.Map;
 import static org.junit.Assert.assertEquals;
 
 /**
- * This class tests that various classification metrics are correctly calculated.
- *
+ * This class tests that standard metrics are correctly calculated.
  */
 public class MetricsCalculatorTest {
 
