@@ -10,14 +10,12 @@ import java.util.*;
 
 /**
  * This class lets the user obtain {@link Summary} report from the evaluation of {@link TextModel}. There is only one method
- * in the class{@link #execute(TextModelSupplier, Map, Map)} and it's used to train the model with training set data and validate
+ * in the class{@link #trainAndValidate(TextModelSupplier, Map, Map)} and it's used to train the model with training set data and validate
  * model performance with validation set.
  *
  * @author dtemraz
  */
 public class ModelEvaluation {
-
-    private static final String LATENT_FEATURE_DELIMITER = "_x_";
 
     /**
      * Returns {@link Summary} report from evaluation of a model defined with <em>modelSupplier</em>. The model is trained with
@@ -28,8 +26,18 @@ public class ModelEvaluation {
      * @param validationSet to validate performance of the model
      * @return report of a model evaluation trained with <em>trainingSet</em> and validated with <em>validationSet</em>
      */
-    public static Summary execute(TextModelSupplier modelSupplier, Map<Double, List<String[]>> trainingSet, Map<Double, List<String[]>> validationSet) {
-        TextModel textModel = modelSupplier.get(trainingSet);
+    public static Summary trainAndValidate(TextModelSupplier modelSupplier, Map<Double, List<String[]>> trainingSet, Map<Double, List<String[]>> validationSet) {
+        return validate(modelSupplier.get(trainingSet), validationSet);
+    }
+
+    /**
+     * Returns {@link Summary} report from validation of a trained <em>textModel</em> over <em>validationSet</em>.
+     *
+     * @param textModel already trained model
+     * @param validationSet to validate performance of the model
+     * @return report of <em>textModel</em> evaluation validated with <em>validationSet</em>
+     */
+    public static Summary validate(TextModel textModel, Map<Double, List<String[]>> validationSet) {
         Evaluation evaluation = prepareEvaluation(validationSet.keySet());
         for (Map.Entry<Double, List<String[]>> validationSamples : validationSet.entrySet()) {
             double expectedClass = validationSamples.getKey();
@@ -37,7 +45,7 @@ public class ModelEvaluation {
             for (String[] sample : validationSamples.getValue()) {
                 double predicted = textModel.classify(sample);
                 if (predicted != expectedClass) {
-                    evaluation.wronglyClassified.add(new WronglyClassified(expectedClass, predicted, removeLatentFeatures(sample)));
+                    evaluation.wronglyClassified.add(new WronglyClassified(expectedClass, predicted, String.join(" ", sample)));
                 }
                 evaluation.confusionMatrix.get(expectedClass).merge(predicted, 1, Integer::sum);
             }
@@ -52,7 +60,7 @@ public class ModelEvaluation {
      * @param validationSet to validate performance of the model
      * @return report of <em>textModel</em> evaluation validated with <em>validationSet</em>
      */
-    public static Summary execute(TextModel textModel, Map<Double, List<IdentifiableSample>> validationSet) {
+    public static Summary validateWithIdSamples(TextModel textModel, Map<Double, List<IdentifiableSample>> validationSet) {
         Evaluation evaluation = prepareEvaluation(validationSet.keySet());
         for (Map.Entry<Double, List<IdentifiableSample>> validationSamples : validationSet.entrySet()) {
             double expectedClass = validationSamples.getKey();
@@ -61,7 +69,7 @@ public class ModelEvaluation {
                 String[] features = sample.getFeatures();
                 double predicted = textModel.classify(sample.getFeatures());
                 if (predicted != expectedClass) {
-                    evaluation.wronglyClassified.add(new WronglyClassified(expectedClass, predicted, removeLatentFeatures(features), sample.getId()));
+                    evaluation.wronglyClassified.add(new WronglyClassified(expectedClass, predicted, String.join(" ", features), sample.getId()));
                 }
                 evaluation.confusionMatrix.get(expectedClass).merge(predicted, 1, Integer::sum);
             }
@@ -81,17 +89,6 @@ public class ModelEvaluation {
         return new Evaluation(confusionMatrix, wronglyClassified);
     }
 
-    private static String removeLatentFeatures(String[] features) {
-        StringJoiner joiner = new StringJoiner(" ");
-        for (String feature : features) {
-            // latent features are grouped together and put at the end, so we can stop on first
-            if (feature.startsWith(LATENT_FEATURE_DELIMITER)) {
-                break;
-            }
-            joiner.add(feature);
-        }
-        return joiner.toString();
-    }
 
     // a tiny wrapper class to hold confusion matrix and a set of wrongly classified messages
     @RequiredArgsConstructor

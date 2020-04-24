@@ -78,7 +78,7 @@ public class StratifiedKFold {
         List<Summary> summaries = new ArrayList<>();
         for (int run = 0, validationFold = 0; run < folds.size(); run++, validationFold++) {
             // at each iteration, use different fold for validation
-            summaries.add(ModelEvaluation.execute(modelSupplier, extractTrainingSet(folds, validationFold), folds.get(validationFold)));
+            summaries.add(ModelEvaluation.trainAndValidate(modelSupplier, extractTrainingSet(folds, validationFold), folds.get(validationFold)));
         }
         return SummaryAnalysis.average(summaries);
     }
@@ -194,7 +194,7 @@ public class StratifiedKFold {
         public Summary call() {
             Map<Double, List<String[]>> trainingSet = extractTrainingSet(folds, validationFold);
             Map<Double, List<String[]>> validationSet = folds.get(validationFold);
-            return ModelEvaluation.execute(modelSupplier, trainingSet, validationSet);
+            return ModelEvaluation.trainAndValidate(modelSupplier, trainingSet, validationSet);
         }
     }
 }

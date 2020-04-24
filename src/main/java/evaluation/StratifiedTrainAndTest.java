@@ -48,13 +48,13 @@ public class StratifiedTrainAndTest {
     public static Summary run(TextModelSupplier modelSupplier, Map<Double, List<String[]>> completeSet, double validationRatio, int iterations) {
         if (iterations <= 1) {
             TrainAndTestSplit<String[]> trainAndTestSplit = split(completeSet, validationRatio);
-            return ModelEvaluation.execute(modelSupplier, trainAndTestSplit.trainingSet, trainAndTestSplit.validationSet);
+            return ModelEvaluation.trainAndValidate(modelSupplier, trainAndTestSplit.trainingSet, trainAndTestSplit.validationSet);
         }
         // if there is more than one iteration, average results across them
         List<Summary> summaries = new ArrayList<>();
         for (int i = 0; i < iterations; i++) {
             TrainAndTestSplit<String[]> trainAndTestSplit = split(completeSet, validationRatio);
-            summaries.add(ModelEvaluation.execute(modelSupplier, trainAndTestSplit.trainingSet, trainAndTestSplit.validationSet));
+            summaries.add(ModelEvaluation.trainAndValidate(modelSupplier, trainAndTestSplit.trainingSet, trainAndTestSplit.validationSet));
         }
         return SummaryAnalysis.average(summaries);
     }
@@ -62,13 +62,13 @@ public class StratifiedTrainAndTest {
     public static Summary runWithIdentifiableSample(TextModelSupplier modelSupplier, Map<Double, List<IdentifiableSample>> completeSet, double validationRatio, int iterations) {
         if (iterations <= 1) {
             TrainAndTestSplit<IdentifiableSample> trainAndTestSplit = split(completeSet, validationRatio);
-            return ModelEvaluation.execute(modelSupplier.get(toFeatures(trainAndTestSplit.trainingSet)), trainAndTestSplit.validationSet);
+            return ModelEvaluation.validateWithIdSamples(modelSupplier.get(toFeatures(trainAndTestSplit.trainingSet)), trainAndTestSplit.validationSet);
         }
         // if there is more than one iteration, average results across them
         List<Summary> summaries = new ArrayList<>();
         for (int i = 0; i < iterations; i++) {
             TrainAndTestSplit<IdentifiableSample> trainAndTestSplit = split(completeSet, validationRatio);
-            summaries.add(ModelEvaluation.execute(modelSupplier.get(toFeatures(trainAndTestSplit.trainingSet)), trainAndTestSplit.validationSet));
+            summaries.add(ModelEvaluation.validateWithIdSamples(modelSupplier.get(toFeatures(trainAndTestSplit.trainingSet)), trainAndTestSplit.validationSet));
         }
         return SummaryAnalysis.average(summaries);
     }
@@ -96,7 +96,7 @@ public class StratifiedTrainAndTest {
 
     // extracts features from identifiable sample, id is not important for training set
     private static Map<Double, List<String[]>> toFeatures(Map<Double, List<IdentifiableSample>> dataSet) {
-        return dataSet.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().stream().map(ids -> ids.getFeatures()).collect(Collectors.toList())));
+        return dataSet.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().stream().map(IdentifiableSample::getFeatures).collect(Collectors.toList())));
     }
 
 }

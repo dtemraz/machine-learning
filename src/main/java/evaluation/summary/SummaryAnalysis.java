@@ -30,7 +30,7 @@ public class SummaryAnalysis {
         Map<Double, Map<Double, Integer>> confusionMatrix = new LinkedHashMap<>();
         Map<Double, Double> classPrecision = new LinkedHashMap<>();
         Map<Double, Double> classRecall = new LinkedHashMap<>();
-        Set<WronglyClassified> missedMessages = new HashSet<>();
+        Set<WronglyClassified> missedMessages = new TreeSet<>();
 
         for (Summary summary : summaries) {
             // sum concrete metric values for each summary
