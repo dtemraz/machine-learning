@@ -52,21 +52,43 @@ public class MultinomialNaiveBayes implements TextModel, Serializable {
      * @param samples Map containing class id and associated texts to train Multinomial Naive Bayes algorithm
      */
     public MultinomialNaiveBayes(Map<Double, List<String[]>> samples) {
-        this(samples, Vocabulary.NO_PRUNING);
+        this(samples, Vocabulary.NO_PRUNING, false);
+    }
+
+    /**
+     * Constructs instance of this class trained to classify <em>samples</em> into classes defined with their labels.
+     *
+     * @param samples Map containing class id and associated texts to train Multinomial Naive Bayes algorithm
+     * @param normalizePriors weight classes with <strong>equal</strong> prior probability
+     */
+    public MultinomialNaiveBayes(Map<Double, List<String[]>> samples, boolean normalizePriors) {
+        this(samples, Vocabulary.NO_PRUNING, normalizePriors);
     }
 
     /**
      * Constructs instance of this class trained to classify <em>samples</em> into classes defined with their labels, skipping all the words
      * in training phase which appear in less than <em>minCount</em> documents.
      *
-     * @param samples  Map containing class id and associated texts to train Multinomial Naive Bayes algorithm
+     * @param samples Map containing class id and associated texts to train Multinomial Naive Bayes algorithm
      * @param minCount minimal number of documents in which a word should appear to be used learning and classification
      */
     public MultinomialNaiveBayes(Map<Double, List<String[]>> samples, int minCount) {
+        this(samples, minCount, false);
+    }
+
+    /**
+     * Constructs instance of this class trained to classify <em>samples</em> into classes defined with their labels, skipping all the words
+     * in training phase which appear in less than <em>minCount</em> documents.
+     *
+     * @param samples Map containing class id and associated texts to train Multinomial Naive Bayes algorithm
+     * @param minCount minimal number of documents in which a word should appear to be used learning and classification
+     * @param normalizePriors weight classes with <strong>equal</strong> prior probability
+     */
+    public MultinomialNaiveBayes(Map<Double, List<String[]>> samples, int minCount, boolean normalizePriors) {
         if (samples == null) {
             throw new IllegalArgumentException("samples must not be null");
         }
-        classDistributions = train(samples, minCount);
+        classDistributions = train(samples, minCount, normalizePriors);
     }
 
     /**
@@ -103,7 +125,7 @@ public class MultinomialNaiveBayes implements TextModel, Serializable {
     */
 
     // trains naive algorithms.bayes from the provided samples
-    private List<ClassDistribution> train(Map<Double, List<String[]>> samples, int minCount) {
+    private List<ClassDistribution> train(Map<Double, List<String[]>> samples, int minCount, boolean normalizePriors) {
         // skip all the words which do not appear in minimal number of documents across all classes
         Set<String> tooRareWords = Vocabulary.findRareWords(samples.values().stream().flatMap(List::stream).collect(Collectors.toList()), minCount);
         int documentsCount = samples.values().stream().map(List::size).reduce(0, Integer::sum);
@@ -114,7 +136,7 @@ public class MultinomialNaiveBayes implements TextModel, Serializable {
         // count of unique words across all classes
         int allUniqueWords = countAllUniqueWords(frequencyTables);
         // convert probabilities to logarithmic scale and apply laplace smoothing to handle unseen words and underflow
-        ArrayList<ClassDistribution> distributions = getClassDistributions(samples, documentsCount, classIds, frequencyTables, allUniqueWords);
+        ArrayList<ClassDistribution> distributions = getClassDistributions(samples, documentsCount, classIds, frequencyTables, allUniqueWords, normalizePriors);
         distributions.forEach(cd -> laplaceSmoothing(cd.probabilityTable, allUniqueWords));
         return distributions;
     }
@@ -129,11 +151,12 @@ public class MultinomialNaiveBayes implements TextModel, Serializable {
     }
 
     // map class distribution to object oriented model for inference
-    private ArrayList<ClassDistribution> getClassDistributions(Map<Double, List<String[]>> samples, int documentsCount, Set<Double> classIds, Map<Double, HashMap<String, Double>> frequencyTables, int allUniqueWords) {
+    private ArrayList<ClassDistribution> getClassDistributions(Map<Double, List<String[]>> samples, int documentsCount, Set<Double> classIds,
+                                                               Map<Double, HashMap<String, Double>> frequencyTables, int allUniqueWords, boolean normalizePriors) {
         ArrayList<ClassDistribution> distributions = new ArrayList<>();
         for (Double classId : classIds) {
             List<String[]> classSamples = samples.get(classId);
-            distributions.add(computeClassDistribution(classId, classSamples, frequencyTables.get(classId), documentsCount, allUniqueWords));
+            distributions.add(computeClassDistribution(classId, classSamples, frequencyTables.get(classId), documentsCount, allUniqueWords, normalizePriors));
         }
         return distributions;
     }
@@ -146,8 +169,9 @@ public class MultinomialNaiveBayes implements TextModel, Serializable {
     }
 
     // wraps each class with its associated probability and words probability distribution
-    private ClassDistribution computeClassDistribution(Double classId, List<String[]> classSamples, HashMap<String, Double> ft, int documentsCount, int allUniqueWords) {
-        double classProbability = Math.log((double) classSamples.size() / documentsCount);
+    private ClassDistribution computeClassDistribution(Double classId, List<String[]> classSamples, HashMap<String, Double> ft, int documentsCount, int allUniqueWords, boolean normalizePriors) {
+        // ignore(treat equal) prior probabilities if configured, otherwise use natural distribution from training set
+        double classProbability = normalizePriors ? 0 : Math.log((double) classSamples.size() / documentsCount);
         int wordsInClass = countWords(ft);
         double unseenWordProbability = Math.log((1 / (double) (wordsInClass + allUniqueWords)));
         return new ClassDistribution(classId, ft, classProbability, wordsInClass, unseenWordProbability);
@@ -157,8 +181,13 @@ public class MultinomialNaiveBayes implements TextModel, Serializable {
     private HashMap<String, Double> buildFrequencyTable(List<String[]> texts, Set<String> tooRareWords) {
         HashMap<String, Double> frequencyTable = new HashMap<>();
         // ignore words which are to rare and have no information value
-        texts.stream().flatMap(Arrays::stream).filter(word -> !tooRareWords.contains(word))
-                .forEach(word -> frequencyTable.merge(word, 1D, (old, n) -> old + n));
+        for (String[] text : texts) {
+            for (String word : text) {
+                if (!tooRareWords.contains(word)) {
+                    frequencyTable.merge(word, 1D, Double::sum);
+                }
+            }
+        }
         return frequencyTable;
     }
 
@@ -176,10 +205,8 @@ public class MultinomialNaiveBayes implements TextModel, Serializable {
 
     // returns total number of words in a frequency table
     private int countWords(HashMap<String, Double> frequencyTable) {
-        Double wordsInClass = frequencyTable.entrySet().stream()
-                .mapToDouble(Map.Entry::getValue)
-                .reduce(0D, Double::sum);
-        return wordsInClass.intValue();
+        double wordsInClass = frequencyTable.values().stream().reduce(0D, Double::sum);
+        return (int) wordsInClass;
     }
 
     /*
