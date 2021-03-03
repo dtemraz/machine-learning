@@ -65,29 +65,29 @@ public class LogisticRegression implements TextModel, Model, Serializable {
     // initializes and trains logistic regression for textual classification of trainingSet
     LogisticRegression(Vocabulary vocabulary, Map<Double, List<String[]>> trainingSet, TextOptimizer optimizer) {
         this.vocabulary = vocabulary;
+        int numberOfFeatures = vocabulary.size();
         // coefficients for each feature + bias
-        double[] coefficients = Vector.randomArray(vocabulary.size() + 1);
+        double[] coefficients = Vector.randomArray(numberOfFeatures + 1);
         long before = System.currentTimeMillis();
         optimizer.optimize(trainingSet, coefficients);
         long after = System.currentTimeMillis();
         log.info("training time: " + TimeUnit.MILLISECONDS.toSeconds(after - before));
-        // this is inconsistent with gradient descent which stores bias in 0th array position - TODO normalize
         bias = coefficients[coefficients.length - 1];
         theta = Arrays.copyOfRange(coefficients, 0, coefficients.length - 1);
     }
 
     // initializes and trains logistic regression for classification of trainingSet
-    LogisticRegression(List<double[]> trainingSet,  Optimizer optimizer) {
+    LogisticRegression(List<double[]> trainingSet, Optimizer optimizer) {
         TrainingSet trainingSamples = TrainingSet.build(trainingSet);
+        int numberOfFeatures = trainingSamples.input[0].length;
         // coefficients for each feature + bias
-        double[] coefficients = Vector.randomArray(trainingSet.get(0).length + 1);
+        double[] coefficients = Vector.randomArray(numberOfFeatures + 1);
         long before = System.currentTimeMillis();
         optimizer.optimize(trainingSamples.input, trainingSamples.expected, coefficients);
         long after = System.currentTimeMillis();
         log.info("training time: " + TimeUnit.MILLISECONDS.toSeconds(after - before));
-        // this is inconsistent with text gradient descent which stores bias in final array position - TODO normalize
-        bias = coefficients[0];
-        theta = Arrays.copyOfRange(coefficients, 1, coefficients.length);
+        bias = coefficients[coefficients.length - 1];
+        theta = Arrays.copyOfRange(coefficients, 0, coefficients.length - 1);
         this.vocabulary = null;
     }
 

@@ -73,8 +73,7 @@ public class GradientDescent {
                 double[] input = in[sample];
                 double error = out[sample] - predictor.apply(input, coefficients);
                 epochError[sample] = error; // stopping criteria requires error for each sample in an epoch
-                // ΔWk(n) = e(n) * η * x(n), sum existing theta with this delta
-                Vector.mergeSum(coefficients, Vector.multiply(input, error * learningRate));
+                updateCoefficients(input, coefficients, error * learningRate);
             }
             converged = stoppingCriteria.test(epochError);
         }
@@ -119,27 +118,56 @@ public class GradientDescent {
 
         for (epoch = 0; epoch < epochs && !converged; epoch++) {
             double[] gradient = new double[features]; // change of weights is proportional to gradient
-            double[]  epochError = new double[input.length]; // vector of error per sample in this epoch
+            double[] epochError = new double[input.length]; // vector of error per sample in this epoch
+            double batchError = 0;
             int sample = 0; // sample count in this epoch
             int batchCount = 0; // count of samples in this batch
             // iterator guarantees random order in each epoch
             for (int row : dataRows) {
+                sample++;
+                batchCount++;
                 double estimate = predictor.apply(input[row], coefficients);
                 double error = out[row] - estimate;
                 epochError[sample] = error;
-                // e(n) * x(n), we will apply learning rate after we have see all samples in a batch
+
+                // collect gradient for feature weights until the end of batch
                 Vector.mergeSum(gradient, Vector.multiply(input[row], error));
-                sample++;
-                batchCount++;
+                // for bias term, gradient is equal to the error
+                batchError += error;
+
                 if (batchCount == batchSize || dataRows.isEmpty()) {
-                    // ΔWk(n) = e(n) * η * x(n), gradient contains e(n) * x(n), apply learning rate on gradient for final value
-                    Vector.mergeSum(coefficients, Vector.multiply(gradient, updateFactor));
+                    batchUpdate(gradient, coefficients, batchSize, batchError);
+                    gradient = new double[features];
                     batchCount = 0;
+                    batchError = 0;
                 }
             }
             converged = stoppingCriteria.test(epochError);
         }
         System.out.println(String.format("converged in %d epochs", epoch));
+    }
+
+    private void updateCoefficients(double[] input, double[] coefficients, double update) {
+        // update all feature coefficients
+        for (int i = 0; i < input.length; i++) {
+            // ΔWk(n) = e(n) * η * X(n) , sum existing theta with this delta
+            coefficients[i] += input[i] * update;
+        }
+        // update bias coefficient
+        int bias = coefficients.length - 1;
+        coefficients[bias] += update;
+    }
+
+    private void batchUpdate(double[] gradient, double[] coefficients, double batchSize, double batchError) {
+        double batchUpdateFactor = learningRate / batchSize;
+        // update all feature coefficients
+        for (int i = 0; i < gradient.length; i++) {
+            // ΔWk(n) = e(n) * η * X(n) , sum existing theta with this delta
+            coefficients[i] += gradient[i] * batchUpdateFactor;
+        }
+        // update bias coefficient
+        int bias = coefficients.length - 1;
+        coefficients[bias] += batchError * batchUpdateFactor;
     }
 
 }
