@@ -2,7 +2,7 @@ package examples.iris;
 
 import algorithms.k_means.K_Means;
 import algorithms.k_means.Member;
-import algorithms.linear_regression.optimization.real_vector.GradientDescent;
+import algorithms.linear_regression.optimization.real_vector.BatchGDOptimizer;
 import algorithms.linear_regression.optimization.real_vector.StoppingCriteria;
 import algorithms.neural_net.Activation;
 import algorithms.neural_net.Neuron;
@@ -43,7 +43,7 @@ public class TestIris {
         System.out.println();
 
         System.out.println("## running tests with delta rule gradient descent ##");
-        GradientDescent gd = new GradientDescent(0.2, 100_000, StoppingCriteria.squaredErrorBellowTolerance(0.000009));
+        BatchGDOptimizer gd = new BatchGDOptimizer(0.2, 100_000, 10, StoppingCriteria.squaredErrorBellowTolerance(0.000009));
 
         Neuron deltaGD = new Neuron(IrisReader.IRIS_MEASURES, Activation.SIGMOID::apply, new DeltaRuleGradientDescent(gd), _1_PER_CENT_ERROR_CLASSIFICATION);
         run(deltaGD, 0, 1);
@@ -89,29 +89,29 @@ public class TestIris {
 
     private static List<LearningSample> extractSamples(Map<IrisType, List<Iris>> irisTypes, double setosaClass, double versicolorClass) {
         List<LearningSample> samples = mapToSamples(irisTypes.get(IrisType.SETOSA), setosaClass);
-            samples.addAll(mapToSamples(irisTypes.get(IrisType.VERSICOLOR), versicolorClass));
+        samples.addAll(mapToSamples(irisTypes.get(IrisType.VERSICOLOR), versicolorClass));
         return samples;
     }
 
     // maps iris collection to learning samples with desired output equal to classValue
     private static List<LearningSample> mapToSamples(List<Iris> irisCollection, double classValue) {
         return irisCollection.stream()
-                .map(iris -> new LearningSample(iris.getComponents(), classValue))
-                .collect(Collectors.toList());      
+                             .map(iris -> new LearningSample(iris.getComponents(), classValue))
+                             .collect(Collectors.toList());
     }
 
     private static Double[] boxInput(LearningSample sample) {
         Double[] wrapper = new Double[4];
         double[] input = sample.getInput();
-        for(int i = 1; i <= 4; i++) {
-            wrapper[i-1] = input[i];
+        for (int i = 1; i <= 4; i++) {
+            wrapper[i - 1] = input[i];
         }
         return wrapper;
     }
 
     private static double[] unboxInput(Double[] wrapper) {
         double[] input = new double[4];
-        for(int i = 0; i < 4; i++) {
+        for (int i = 0; i < 4; i++) {
             input[i] = wrapper[i];
         }
         return input;
@@ -156,8 +156,7 @@ public class TestIris {
             Double[] data = member.getData();
             if (neuron.output(unboxInput(data)) == 1) {
                 setosaCount++;
-            } else
-                versicolorCount++;
+            } else { versicolorCount++; }
         }
         System.out.println("cluster id: " + clusterId + " , setosa count: " + setosaCount + ", versicolor count: " + versicolorCount);
     }

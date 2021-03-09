@@ -1,14 +1,8 @@
 package algorithms.linear_regression.optimization.real_vector;
 
 /**
- * This interface let's user configure and submit different gradient techniques to {@link algorithms.linear_regression.LogisticRegression}
- * algorithm.
- * The user may transparently to logistic regression define different GD approaches such as:
- * <ul>
- *  <li>stochastic</li>
- *  <li>mini batch</li>
- * </ul>
- * and their appropriate parameters.
+ * This interface lets user configure and submit parameter optimization techniques to {@link algorithms.linear_regression.LogisticRegression}
+ * Currently, only variations of gradient descent are supported.
  *
  * @author dtemraz
  */
@@ -16,12 +10,13 @@ package algorithms.linear_regression.optimization.real_vector;
 public interface Optimizer {
 
     /**
-     * This method optimizes <em>coefficients</em> using one of the <strong>gradient descent</strong> techniques to achieve
-     * classification of a <em>trainingSet</em>.
+     * This method optimizes <em>coefficients</em> for classification of <em>trainingSet</em> using one of the
+     * <strong>gradient descent</strong> techniques.
      *
-     * @param coefficients to optimize for training set classification
-     * @param expectedValues class labels associated with <em>trainingSet</em>
-     * @param trainingSet each row represent a single learning sample whose class label is found in a matching column ni <em>expectedValues</em>
+     * @param trainingSet each row represent a single learning sample whose label is found in a matching column in <em>expected</em>
+     * @param expected class labels associated with <em>trainingSet</em>
+     * @param coefficients to optimize with <strong>bias coefficient</strong> in the <em>last</em> position
      */
-    void optimize(double[][] trainingSet, double[] expectedValues, double[] coefficients);
+    void optimize(double[][] trainingSet, double[] expected, double[] coefficients);
+
 }

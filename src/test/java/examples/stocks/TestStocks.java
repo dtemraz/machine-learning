@@ -1,6 +1,6 @@
 package examples.stocks;
 
-import algorithms.linear_regression.optimization.real_vector.GradientDescent;
+import algorithms.linear_regression.optimization.real_vector.BatchGDOptimizer;
 import algorithms.linear_regression.optimization.real_vector.StoppingCriteria;
 import algorithms.neural_net.Activation;
 import algorithms.neural_net.Neuron;
@@ -42,15 +42,15 @@ public class TestStocks {
         double[] prices = loadPrices();
         StockHistory history = new StockHistory(prices);
 
-        GradientDescent gd = new GradientDescent(lEARNING_RATE, MAX_EPOCH, StoppingCriteria.squaredErrorBellowTolerance(ERROR_TOLERANCE));
+        BatchGDOptimizer gd = new BatchGDOptimizer(lEARNING_RATE, MAX_EPOCH, 10, StoppingCriteria.squaredErrorBellowTolerance(ERROR_TOLERANCE));
         Neuron neuron = new Neuron(PREVIOUS, Activation.IDENTITY::apply, new DeltaRuleGradientDescent(gd));
         neuron.train(samples(history, PREVIOUS, SAMPLE_SIZE));
 
         System.out.println("seen examples");
-        verifySamples(neuron, history, prices,PREVIOUS + 1, PREVIOUS + SAMPLE_SIZE);
+        verifySamples(neuron, history, prices, PREVIOUS + 1, PREVIOUS + SAMPLE_SIZE);
 
         System.out.println("unseen examples");
-        verifySamples(neuron, history, prices,PREVIOUS + SAMPLE_SIZE, PREVIOUS + SAMPLE_SIZE + 11);
+        verifySamples(neuron, history, prices, PREVIOUS + SAMPLE_SIZE, PREVIOUS + SAMPLE_SIZE + 11);
     }
 
 
