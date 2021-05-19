@@ -4,19 +4,24 @@ import algorithms.model.Model;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import structures.Sample;
+import utilities.QuickSelect;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
  * This class implements KNN algorithm that can be used for regression or classification. Inference runs in time proportional
  * to the size of training set so the algorithm is not suitable for large data sets.
+ *
  * <p>
  * The user is able to specify custom distance function or use one of the predefined functions in {@link DistanceFunction}.
  * </p>
- * Finally, there is a set of predefined aggregation functions that can be selected with {@link AggregationStrategy} which turn
- * KNN in standard or weighted form.
+ * There is a set of predefined aggregation functions that can be selected with {@link AggregationStrategy} that apply
+ * different neighbor weighting schemas.
+ * <p>
+ * User may also specify {@link SearchStrategy} used to find K nearest neighbors out of all neighbors, of those {@link SearchStrategy#QUICK_SELECT}
+ * should be preferred in most if not all realistic scenarios.
+ * </p>
  *
  * @author dtemraz
  */
@@ -26,23 +31,26 @@ public class KNearestNeighbors implements Model {
     private final List<Sample> dataSet;
     private final DistanceFunction distanceFunction;
     private final AggregateFunction aggregateFunction;
+    private final SearchStrategy searchStrategy;
 
     public KNearestNeighbors(int k, List<Sample> dataSet, DistanceFunction distanceFunction, AggregationStrategy aggregationStrategy) {
+        this(k, dataSet, distanceFunction, aggregationStrategy, SearchStrategy.QUICK_SELECT);
+    }
+
+    public KNearestNeighbors(int k, List<Sample> dataSet, DistanceFunction distanceFunction, AggregationStrategy aggregationStrategy,
+                             SearchStrategy searchStrategy) {
         this.k = k;
         this.dataSet = dataSet;
         this.distanceFunction = distanceFunction;
-        aggregateFunction = getAggregateFunction(aggregationStrategy);
+        this.aggregateFunction = getAggregateFunction(aggregationStrategy);
+        this.searchStrategy = searchStrategy;
     }
 
     @Override
     public double predict(double[] data) {
-        List<Neighbor> neighbors = new ArrayList<>();
-        for (Sample sample : dataSet) {
-            double distance = distanceFunction.apply(data, sample.getValues());
-            neighbors.add(new Neighbor(distance, sample.getTarget()));
-        }
-        Collections.sort(neighbors);
-        return aggregateFunction.apply(neighbors);
+        List<Neighbor> neighborDistances = computeNeighborDistances(data);
+        List<Neighbor> kNearest = searchStrategy.findKNearest(neighborDistances, k);
+        return aggregateFunction.apply(kNearest);
     }
 
     /**
@@ -71,7 +79,15 @@ public class KNearestNeighbors implements Model {
         throw new IllegalStateException("unknown aggregation strategy: " + aggregationStrategy);
     }
 
-    // this class represents neighbor to the query point
+    private List<Neighbor> computeNeighborDistances(double[] data) {
+        List<Neighbor> neighborDistances = new ArrayList<>();
+        for (Sample sample : dataSet) {
+            double distance = distanceFunction.apply(data, sample.getValues());
+            neighborDistances.add(new Neighbor(distance, sample.getTarget()));
+        }
+        return neighborDistances;
+    }
+
     @RequiredArgsConstructor
     @Getter
     static class Neighbor implements Comparable<Neighbor> {

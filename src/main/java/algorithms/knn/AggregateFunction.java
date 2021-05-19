@@ -3,6 +3,7 @@ package algorithms.knn;
 import structures.Sample;
 import utilities.math.Statistics;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,7 +20,7 @@ import java.util.Map;
  * @author dtemraz
  */
 @FunctionalInterface
-interface AggregateFunction {
+interface AggregateFunction extends Serializable {
 
     /**
      * Returns aggregation of values of closest neighbors. The result could be classification or regression, depending on the
@@ -59,7 +60,7 @@ interface AggregateFunction {
 
     // helper method to compute weighted average
     private static double weightedAverage(int k, List<KNearestNeighbors.Neighbor> neighbors, double inverseDistanceSum) {
-         double prediction = 0;
+        double prediction = 0;
         for (int i = 0; i < k; i++) {
             KNearestNeighbors.Neighbor neighbor = neighbors.get(i);
             double inverseDistance = 1 / neighbor.distance;
