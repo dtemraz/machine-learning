@@ -1,5 +1,7 @@
-package algorithms.linear_regression.optimization.text;
+package algorithms.linear_regression.optimization.multiclass;
 
+import algorithms.linear_regression.optimization.text.L2Regularization;
+import algorithms.linear_regression.optimization.text.TextSample;
 import algorithms.neural_net.StableSoftMaxActivation;
 import com.google.common.util.concurrent.AtomicDoubleArray;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +25,7 @@ import java.util.concurrent.atomic.DoubleAdder;
  */
 @RequiredArgsConstructor
 @Log4j2
-public class ParallelSoftMaxOptimizer {
+public class ParallelSoftMaxOptimizer implements MultiClassOptimizer {
 
     private static final double TARGET = 1; // there is only one true class corresponding to a sample
     private static final double OTHER = 0; // all other classes are false and optimizer should be trained to converge activation to 0 for these classes
@@ -42,6 +44,22 @@ public class ParallelSoftMaxOptimizer {
 
     public ParallelSoftMaxOptimizer(double learningRate, double l2lambda, int epochs) {
         this(learningRate, epochs, l2lambda, false);
+    }
+
+    @Override
+    public void optimize(Map<Double, List<String[]>> trainingSet, Map<Double, double[]> coefficients, Vocabulary vocabulary) {
+        stochastic(trainingSet, coefficients, vocabulary);
+    }
+
+    /**
+     * Throws UnsupportedOperationException as the method is not yet implemented.
+     *
+     * @param data where key = class and value = texts broken into words and latent features per class
+     * @param coefficients to optimize for training set classification
+     */
+    @Override
+    public void optimize(Map<Double, List<double[]>> data, Map<Double, double[]> coefficients) {
+        throw new UnsupportedOperationException("not yet implemented, but will be :) ");
     }
 
     /**
@@ -80,10 +98,10 @@ public class ParallelSoftMaxOptimizer {
                 for (int i = 0; i < classes.length; i++) {
                     double classId = classes[i];
                     // only one class can be true class for a given sample, for all other classes value should be zero
-                    double expected = txt.classId == classId ? TARGET : OTHER;
+                    double expected = txt.getClassId() == classId ? TARGET : OTHER;
                     // weights of target class should converge to 1, for all other classes weights should converge to 0
                     double error = expected - activations[i];
-                    updateCoefficients(txt.terms, concurrentCoefficients.get(classId), learningRate * error);
+                    updateCoefficients(txt.getTerms(), concurrentCoefficients.get(classId), learningRate * error);
                     if (verbose) {
                         errorAccumulators.get(classId).add(error * error);
                     }
@@ -111,7 +129,7 @@ public class ParallelSoftMaxOptimizer {
         for (int i = 0; i < classes.length; i++) {
             AtomicDoubleArray classCoefficients = coefficients.get(classes[i]);
             double bias = classCoefficients.get(classCoefficients.length() - 1);
-            weightedInput[i] = bias + dotProduct(textSample.terms, classCoefficients);
+            weightedInput[i] = bias + dotProduct(textSample.getTerms(), classCoefficients);
         }
         return weightedInput;
     }
@@ -161,7 +179,7 @@ public class ParallelSoftMaxOptimizer {
     // prints current epoch and average epoch error across all classes
     private static void printAverageEpochError(int epoch, int samples, Map<Double, DoubleAdder> errorAccumulators) {
         double totalError = 0;
-        for(DoubleAdder accumulator : errorAccumulators.values()) {
+        for (DoubleAdder accumulator : errorAccumulators.values()) {
             totalError += accumulator.sumThenReset();
         }
         double averageError = totalError / errorAccumulators.size();

@@ -1,13 +1,10 @@
 package examples.sms_spam;
 
-import algorithms.WithThreshold;
 import algorithms.bayes.MultinomialNaiveBayes;
-import algorithms.linear_regression.LogisticRegression;
-import algorithms.linear_regression.SoftMaxRegression;
+import algorithms.linear_regression.optimization.multiclass.MultiClassOptimizer;
+import algorithms.linear_regression.optimization.multiclass.ParallelSoftMaxOptimizer;
+import algorithms.linear_regression.optimization.multiclass.SoftMaxOptimizer;
 import algorithms.linear_regression.optimization.text.*;
-import algorithms.model.ClassificationResult;
-import algorithms.model.TextModel;
-import algorithms.model.TextModelWithProbability;
 import structures.text.Vocabulary;
 
 import java.io.File;
@@ -15,7 +12,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- *
  * @author dtemraz
  */
 public class TestSmsSpam {
@@ -37,8 +33,8 @@ public class TestSmsSpam {
             DataSet dataSet = stratification(new LinkedList<>(spamFeatures), new LinkedList<>(hamFeatures));
 
             Map<Double, List<String[]>> smsCorpus = new HashMap<>();
-            smsCorpus.put(0D,  dataSet.trainingSpam.stream().map(String::toLowerCase).map(t -> t.trim().split("\\s+")).collect(Collectors.toList()));
-            smsCorpus.put(1D,  dataSet.trainingHam.stream().map(String::toLowerCase).map(t -> t.trim().split("\\s+")).collect(Collectors.toList()));
+            smsCorpus.put(0D, dataSet.trainingSpam.stream().map(String::toLowerCase).map(t -> t.trim().split("\\s+")).collect(Collectors.toList()));
+            smsCorpus.put(1D, dataSet.trainingHam.stream().map(String::toLowerCase).map(t -> t.trim().split("\\s+")).collect(Collectors.toList()));
 
             ArrayList<String[]> combined = new ArrayList<>(smsCorpus.get(0D));
             combined.addAll(smsCorpus.get(1D));
@@ -49,8 +45,8 @@ public class TestSmsSpam {
             TextOptimizer sgd = (x, w) -> new TextGradientDescent(0.0003, 10_000, stoppingCriteria, 0, true).stochastic(x, w, v);
             TextOptimizer optimizerBatch = (x, w) -> new TextGradientDescent(0.003, 10_000, stoppingCriteria, 0.1, true).miniBatch(x, w, 120, v);
             TextOptimizer hogwild = (x, w) -> new ParallelTextGradientDescent(0.0003, 10_000, stoppingCriteria, 0, true).stochastic(x, w, v);
-            MultiClassTextOptimizer softMax = (x, w) -> new SoftMaxOptimizer(0.0003, 10_000, 0, true).stochastic(x, w, v);
-            MultiClassTextOptimizer parallelSoftMax = (x, w) -> new ParallelSoftMaxOptimizer(0.0003, 10_000, 0, true).stochastic(x, w, v);
+            MultiClassOptimizer softMax = new SoftMaxOptimizer(0.0003, 10_000, 0);
+            MultiClassOptimizer parallelSoftMax = new ParallelSoftMaxOptimizer(0.0003, 10_000, 0, true);
 
 //            epoch: 9999 , squared error: 11.175443484192442
 //            converged in: 10000 epochs, epoch error: 11,175443
@@ -62,16 +58,17 @@ public class TestSmsSpam {
 //            TextModel textModel = OneAgainstRest.getTextModel(v, smsCorpus, hogwild);
 //            TextModel textModel = LogisticRegression.getTextModel(v, smsCorpus, hogwild);
 //            TextModel textModel = WithThreshold.textModel(LogisticRegression.getTextModel(v, smsCorpus, optimizerBatch), 0.5);
-           // TextModel textModel = SoftMaxRegression.getTextModel(v, smsCorpus, parallelSoftMax);
+            // TextModel textModel = SoftMaxRegression.getTextModel(v, smsCorpus, parallelSoftMax);
 
-           MultinomialNaiveBayes textModel = new MultinomialNaiveBayes(smsCorpus);
+            MultinomialNaiveBayes textModel = new MultinomialNaiveBayes(smsCorpus);
 
-//            TextModelWithProbability textModelWithProbabilities = SoftMaxRegression.getTextModelWithProbabilities(v, smsCorpus, parallelSoftMax);
+            // TextModelWithProbability textModel = SoftMaxRegression.getTextModelWithProbabilities(v, smsCorpus, parallelSoftMax);
+            // TextModel textModel = SoftMaxRegression.getWordEmbeddingsModel(smsCorpus);
 
             int spamPositive = 0;
             int spamNegative = 0;
             for (String message : dataSet.validationSpam) {
-               // ClassificationResult classificationResult = textModelWithProbabilities.classifyWithProb(message.trim().toLowerCase().split("\\s+"));
+                // ClassificationResult classificationResult = textModelWithProbabilities.classifyWithProb(message.trim().toLowerCase().split("\\s+"));
                 // System.out.println(classificationResult.getPredictions().values().stream().reduce(0D, Double::sum).doubleValue());
 //                if (oneVSrest.classify(message.trim().toLowerCase().split("\\s+")) == 0D) {
                 if (textModel.classify(message.trim().toLowerCase().split("\\s+")) < 0.5) {
@@ -107,7 +104,7 @@ public class TestSmsSpam {
 
     private static DataSet stratification(LinkedList<String> spamSms, LinkedList<String> hamSms) {
         // apply knuth shuffle for uniform random distribution of samples
-            Collections.shuffle(spamSms);
+        Collections.shuffle(spamSms);
         Collections.shuffle(hamSms);
         // derive category percentage split
         double totalSamples = spamSms.size() + hamSms.size();

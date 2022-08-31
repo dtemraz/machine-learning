@@ -24,11 +24,13 @@ import java.util.stream.Collectors;
  */
 public class Vocabulary implements Serializable {
 
-    public static final int NO_PRUNING = -1; // keep all words regardless how (in)frequent they might be
-
-    private static final long serialVersionUID = 1L;
-
+    public static final int NO_PRUNING = -1;     // keep all words regardless how (in)frequent they might be
+    private static final long serialVersionUID = 1L; // bla
     private final HashMap<String, Term> terms; // unique word associated with matching index in learning vector and IDF
+
+    public Vocabulary(Collection<List<String[]>> documents) {
+        this(documents.stream().flatMap(Collection::stream).toList());
+    }
 
     public Vocabulary(List<String[]> documents) {
         this(documents, NO_PRUNING);
@@ -63,7 +65,7 @@ public class Vocabulary implements Serializable {
      * Returns instance of {@link Vocabulary} from tokenized <em>documents</em> emitting all terms which appear strictly less than <em>minCount</em>.
      *
      * @param documents tokenized into words
-     * @param minCount  minimal number of documents in which a word must appear, otherwise it is pruned. Multiple occurrences in same document are counted once.
+     * @param minCount minimal number of documents in which a word must appear, otherwise it is pruned. Multiple occurrences in same document are counted once.
      */
     public Vocabulary(List<String[]> documents, int minCount) {
         // generate unique index and IDF for each word in a learning vector abstraction
@@ -97,6 +99,15 @@ public class Vocabulary implements Serializable {
      */
     public Collection<Term> getTerms() {
         return terms.values();
+    }
+
+    /**
+     * Returns all {@link Term} words in this vocabulary.
+     *
+     * @return all {@link Term} words in this vocabulary
+     */
+    public Set<String> getWords() {
+        return terms.keySet();
     }
 
     /**

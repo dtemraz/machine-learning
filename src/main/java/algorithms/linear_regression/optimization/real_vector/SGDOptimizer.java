@@ -35,6 +35,7 @@ public class SGDOptimizer implements Optimizer {
         this.stoppingCriteria = stoppingCriteria;
     }
 
+
     @Override
     public void optimize(double[][] trainingSet, double[] expected, double[] coefficients) {
         int samples = trainingSet.length;
@@ -51,7 +52,7 @@ public class SGDOptimizer implements Optimizer {
             }
             converged = stoppingCriteria.test(epochError);
         }
-        System.out.println(String.format("converged in %d epochs", epoch));
+        System.out.printf("converged in %d epochs%n", epoch);
     }
 
     // adjusts coefficients with learning rate and gradient

@@ -1,5 +1,7 @@
-package algorithms.linear_regression.optimization.text;
+package algorithms.linear_regression.optimization.multiclass;
 
+import algorithms.linear_regression.optimization.text.L2Regularization;
+import algorithms.linear_regression.optimization.text.TextSample;
 import algorithms.neural_net.StableSoftMaxActivation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -9,6 +11,7 @@ import utilities.math.Vector;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * This class implements stochastic gradient descent optimization for sparse text classification with SoftMax regression.
@@ -22,7 +25,7 @@ import java.util.Map;
  */
 @RequiredArgsConstructor
 @Log4j2
-public class SoftMaxOptimizer {
+class SoftMaxTextOptimizer {
 
     private static final double TARGET = 1; // there is only one true class corresponding to a sample
     private static final double OTHER = 0; // all other classes are false and optimizer should be trained to converge activation to 0 for these classes
@@ -33,13 +36,14 @@ public class SoftMaxOptimizer {
     private final boolean verbose; // prints epoch and end epoch error at the end of each iteration
 
     // by default do not log epoch errors
-    public SoftMaxOptimizer(double learningRate, int epochs) {
-        this(learningRate, epochs, 0, false);
+    public SoftMaxTextOptimizer(double learningRate, int epochs) {
+        this(learningRate, epochs, 0, true);
     }
 
-    public SoftMaxOptimizer(double learningRate, double l2lambda, int epochs) {
-        this(learningRate, epochs, l2lambda, false);
+    public SoftMaxTextOptimizer(double learningRate, double l2lambda, int epochs) {
+        this(learningRate, epochs, l2lambda, true);
     }
+
 
     /**
      * Optimizes <em>coefficients</em> for classification of <em>data</em> with parallel stochastic gradient descent.
@@ -54,10 +58,11 @@ public class SoftMaxOptimizer {
         train(TextSample.extractSamples(data, vocabulary), coefficients);
     }
 
+
     private void train(TextSample[] trainingSet, Map<Double, double[]> coefficients) {
         Vector.shuffle(trainingSet);
         int epoch;
-        Double[] classes = coefficients.keySet().toArray(new Double[coefficients.size()]);
+        Double[] classes = coefficients.keySet().toArray(Double[]::new);
         for (epoch = 0; epoch < epochs; epoch++) {
             double[][] epochError = new double[classes.length][trainingSet.length];
             // updates coefficients for each sample in epoch
@@ -71,32 +76,35 @@ public class SoftMaxOptimizer {
                 for (int classId = 0; classId < classes.length; classId++) {
                     double classLabel = classes[classId];
                     // only one class can be true class for a given sample, for all other classes value should be zero
-                    double expected = textSample.classId == classLabel ? TARGET : OTHER;
+                    double expected = textSample.getClassId() == classLabel ? TARGET : OTHER;
                     // weights of target class should converge to 1, for all other classes weights should converge to 0
                     double error = expected - activations[classId];
                     epochError[classId][sample] = error;
-                    updateCoefficients(textSample.terms, coefficients.get(classLabel), error * learningRate);
+                    updateCoefficients(textSample.getTerms(), coefficients.get(classLabel), error * learningRate);
                 }
             }
 
             if (verbose) {
-                printAverageEpochError(epoch, trainingSet.length, epochError);
+                SoftMaxOptimizer.printAverageEpochError(epoch, trainingSet.length, epochError);
             }
         }
     }
 
     // calculates input multiplied by weights(dot product) for each class
     private static double[] calculateWeightedInput(TextSample textSample, Double[] classes, Map<Double, double[]> coefficients) {
+        return calculateWeightedInput(classes, coefficients, cfs -> dotProduct(textSample.getTerms(), cfs));
+    }
+
+    private static double[] calculateWeightedInput(Double[] classes, Map<Double, double[]> coefficients, Function<double[], Double> dotProduct) {
         double[] weightedInput = new double[classes.length];
         for (int i = 0; i < classes.length; i++) {
             double[] classCoefficients = coefficients.get(classes[i]);
             double bias = classCoefficients[classCoefficients.length - 1];
-            weightedInput[i] = bias + dotProduct(textSample.terms, classCoefficients);
+            weightedInput[i] = bias + dotProduct.apply(classCoefficients);
         }
         return weightedInput;
     }
 
-    // calculates sums of words tf-idf and theta coefficients
     private static double dotProduct(TF_IDF_Term[] terms, double[] theta) {
         double sum = 0;
         for (TF_IDF_Term term : terms) {
@@ -112,18 +120,6 @@ public class SoftMaxOptimizer {
         // bias coefficient which is in the last position, should not be regularized
         int bias = coefficients.length - 1;
         coefficients[bias] += update; // bias has value always ON, or in practice 1
-    }
-
-    // prints current epoch and average epoch error across all classes
-    private static void printAverageEpochError(int epoch, int samples, double[][] epochError) {
-        double totalError = 0;
-        int classes = epochError.length;
-        // calculate epoch error for each class
-        for (double[] error : epochError) {
-            totalError += Vector.squaredSum(error);
-        }
-        double averageError = totalError / classes;
-        log.info("epoch: " + epoch + " , average error: " + averageError / samples);
     }
 
 }

@@ -35,6 +35,25 @@ public class TF_IDF_Vectorizer {
     }
 
     /**
+     * Returns average TF-IDF score for <em>termFrequencies</em>.
+     *
+     * @param termFrequencies for which to compute average TF-IDF score
+     * @return average TF-IDF score for <em>termFrequencies</em>
+     */
+    public static double averageTfIdf(HashMap<Term, Double> termFrequencies) {
+        if (termFrequencies.isEmpty()) {
+            return 0;
+        }
+        double tfIdfSum = 0;
+        for (Map.Entry<Term, Double> e : termFrequencies.entrySet()) {
+            double idf = e.getKey().getIdf();
+            double tf = e.getValue();
+            tfIdfSum += tf * idf;
+        }
+        return tfIdfSum / termFrequencies.size();
+    }
+
+    /**
      * Returns TF values associated with {@link Term} objects for each word in <em>words</em>.
      *
      * @param words which should be converted into term frequencies

@@ -33,6 +33,14 @@ public class Vector {
         return sum;
     }
 
+    public static double l2Norm(double[] vector) {
+        double norm = 0;
+        for (double d : vector) {
+            norm += d * d;
+        }
+        return Math.sqrt(norm);
+    }
+
     /**
      * Multiplies vector <em>v</em> by magnitude <em>x</em> and returns new vector as a result.
      *
@@ -46,8 +54,6 @@ public class Vector {
             multiplied[i] = v[i] * x;
         }
         return multiplied;
-        // the line bellow completely kills performance, keeping it to remind myself that (small) streams are currently BUG in java, granted, iterators would also be slower, but not this much slower
-        // return Arrays.stream(v).map(component -> component * x).toArray();
     }
 
     /**
@@ -70,7 +76,7 @@ public class Vector {
      * Copies the content of vector into new vector and sets the first as 0th value in the new vector.
      *
      * @param vector to copy
-     * @param first  element to inject into new array at 0th position
+     * @param first element to inject into new array at 0th position
      * @return extend copy of vector with first set as 0th value
      */
     public static double[] copyWithFirst(double[] vector, double first) {
@@ -111,7 +117,7 @@ public class Vector {
     /**
      * Merges <em>vector</em> with <em>component</em> into a new vector containing both.
      *
-     * @param vector    to expand with <em>component</em>
+     * @param vector to expand with <em>component</em>
      * @param component to add onto <em>vector</em>
      * @return new vector expanded with <em>component</em>
      */
@@ -139,7 +145,7 @@ public class Vector {
      * @param vector for which to find if of max value component
      * @return value of max component in <em>vector</em>
      */
-    public static int  maxComponentId(double[] vector) {
+    public static int maxComponentId(double[] vector) {
         // standard find max algorithm
         double max = Double.NEGATIVE_INFINITY; // Double.MIN_VALUE is actually positive !!
         int maxIdx = Integer.MIN_VALUE;

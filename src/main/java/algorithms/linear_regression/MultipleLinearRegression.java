@@ -21,7 +21,6 @@ import java.util.List;
 public class MultipleLinearRegression implements Model, Serializable {
 
     private static final long serialVersionUID = 1L;
-
     private final double[] theta;
     private final double bias;
 

@@ -1,5 +1,6 @@
 package algorithms.linear_regression.optimization.text;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import structures.text.TF_IDF_Term;
 import structures.text.TF_IDF_Vectorizer;
@@ -24,7 +25,8 @@ import java.util.Map;
  * @author dtemraz
  */
 @RequiredArgsConstructor
-class TextSample {
+@Getter
+public class TextSample {
 
     final double classId; // class id associated with terms
     final TF_IDF_Term[] terms; // tf-idf term for each word in a message
@@ -36,7 +38,7 @@ class TextSample {
      * @param vocabulary of all possible words
      * @return TF-IDF metric for each word from <em>data</em>
      */
-    static TextSample[] extractSamples(Map<Double, List<String[]>> data, Vocabulary vocabulary) {
+    public static TextSample[] extractSamples(Map<Double, List<String[]>> data, Vocabulary vocabulary) {
         // each message has a single TextSample instance associated
         TextSample[] textSamples = new TextSample[data.values().stream().map(List::size).reduce(Integer::sum).get()];
         int sample = 0;

@@ -18,10 +18,10 @@ public class L2Regularization {
     /**
      * Updates <em>coefficients</em> with <em>update</em> multiplied by <em>terms</em>, additionally applying regularization penalty(L2) if lambda &gt; 0.
      *
-     * @param terms        corresponding to message to classify
+     * @param terms corresponding to message to classify
      * @param coefficients vector of all coefficients in this model
-     * @param update       consisting of error and learning rate product
-     * @param lambda       regularization constant
+     * @param update consisting of error and learning rate product
+     * @param lambda regularization constant
      * @param learningRate used to control the learning speed
      */
     public static void update(TF_IDF_Term[] terms, double[] coefficients, double update, double lambda, double learningRate) {
@@ -30,6 +30,14 @@ public class L2Regularization {
             coefficients[term.getId()] += term.getTfIdf() * update - regularizationPenalty;
         }
     }
+
+    public static void update(double[] features, double[] coefficients, double update, double lambda, double learningRate) {
+        for (int i = 0; i < features.length; i++) {
+            double regularizationPenalty = lambda * learningRate * coefficients[i];
+            coefficients[i] += features[i] * update - regularizationPenalty;
+        }
+    }
+
 
     /**
      * Updates <em>coefficients</em> with <em>update</em> multiplied by <em>terms</em>, additionally applying regularization penalty(L2) if lambda &gt; 0.

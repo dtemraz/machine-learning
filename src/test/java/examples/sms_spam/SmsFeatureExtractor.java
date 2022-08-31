@@ -52,7 +52,7 @@ public class SmsFeatureExtractor {
     }
 
     private static String removeSpecialCharacters(String text) {
-        return text.trim().replaceAll("[.^,!?$]"," ");
+        return text.trim().toLowerCase().replaceAll("[.^,!?$]"," ");
     }
 
     private static boolean isAlphaNumeric(String text) {
